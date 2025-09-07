@@ -143,7 +143,7 @@ where $P_{\text{hyper}}(i; L, M, n)$ is the hypergeometric PMF: the probability 
 
 For the i-th relevant item to appear:
 
-1. **Where can it appear?** At ranks n ∈ {i, i+1, ..., N+i}
+1. **Where can it appear?** At ranks n in {i, i+1, ..., N+i}
    - At least at rank i (if all previous i-1 are relevant)
    - At most at rank N+i (if all N non-relevant items come first, then i relevant ones)
 
@@ -162,6 +162,7 @@ For the i-th relevant item to appear:
 Both the harmonic formula and Bestgen's hypergeometric method yield identical results when computed exactly. This equivalence has been verified across numerous test cases, including Bestgen's original examples from his 2015 paper.
 
 The key insight is that both methods capture the same underlying probabilistic structure:
+
 - The harmonic method uses exchangeability and conditional expectations
 - The hypergeometric method explicitly sums over all possible configurations
 
@@ -172,6 +173,7 @@ Despite their different approaches, they arrive at the same exact formula, confi
 ### Why Harmonic Numbers?
 
 Harmonic numbers appear naturally because:
+
 - Precision at rank k involves a 1/k term
 - Summing over all possible ranks gives Σ(1/k) = H_L
 - The "partial" sum Σ(r-1)/r transforms to L - H_L
@@ -179,6 +181,7 @@ Harmonic numbers appear naturally because:
 ### The Bias Structure
 
 The correction term N(H_L - 1)/[L(L-1)] reveals:
+
 - Bias is proportional to N (number of negatives)
 - Bias grows logarithmically with L (since H_L ~ log L)
 - Bias vanishes as O(log L / L) asymptotically
@@ -199,11 +202,13 @@ The relative error (E[AP] - p)/p is approximately (1-p)/p × log(L)/L, which is 
 ### Practical Impact
 
 The bias is most significant for:
+
 - **Low prevalence scenarios**: The relative error grows as (1-p)/p
 - **Small datasets**: Common in specialized domains with limited labeled data
 - **Statistical testing**: Using prevalence instead of the exact formula inflates Type I error rates
 
 This matters for:
+
 - Statistical significance testing (using p as null hypothesis inflates Type I error)
 - Comparing algorithms to random baselines
 - Small datasets common in specialized domains

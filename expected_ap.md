@@ -1,8 +1,11 @@
 # Expected Average Precision Under Random Ranking: Exact Finite-Sample Analysis and Computational Methods
 
-**Author:** [Your Name]
+**Author:** shntnu and claude
+
 **Date:** December 2024
+
 **MSC Classification:** 62G10, 68T05, 60C05
+
 **Keywords:** Average Precision, Random Ranking, Hypergeometric Distribution, Information Retrieval, Statistical Testing
 
 ## Abstract

@@ -32,3 +32,11 @@ Under uniformly random ranking with M relevant items out of L total:
 **E[AP] = (1/L) × [(M-1)/(L-1) × (L - H_L) + H_L]**
 
 where H_L is the L-th harmonic number. This corrects the naive approximation E[AP] ≈ M/L.
+
+## Generate PDFs
+
+```bash
+# Convert markdown papers to PDF
+pandoc expected_ap.md -o expected_ap.pdf --pdf-engine=xelatex -V mainfont="TeX Gyre Termes" -V mathfont="TeX Gyre Termes Math"
+pandoc expected_ap_simple.md -o expected_ap_simple.pdf --pdf-engine=xelatex -V mainfont="TeX Gyre Termes" -V mathfont="TeX Gyre Termes Math"
+```
