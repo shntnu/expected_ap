@@ -1,39 +1,33 @@
-# Expected Average Precision Analysis
+# Expected Average Precision Under Random Ranking
 
-Mathematical analysis and implementation of Expected Average Precision (AP) under random ranking.
+Exact finite-sample analysis and computational methods for Expected Average Precision (AP).
 
 ## Overview
 
-This project provides both theoretical derivation and practical implementation of the expected value of Average Precision when items are ranked uniformly at random. The key result shows that E[AP] = prevalence + O(log L / L), where L is the total number of items.
+This repository contains the theoretical derivation and implementation showing that E[AP] under random ranking equals prevalence plus a O(log L/L) bias term, not just prevalence as commonly assumed.
 
-## Components
-
-- **map.py** - Interactive Python notebook with simulations and visualizations
-- **lean/** - Formal proof in Lean 4 (work in progress - contains incomplete proofs)
-- **expected_ap.md** - Mathematical exposition
+See [`expected_ap.md`](expected_ap.md) for the full mathematical exposition.
 
 ## Quick Start
 
-### Python Simulation
 ```bash
-# Run interactive notebook
-marimo run map.py
+# Run the interactive notebook
+marimo run expected_ap.py
 
-# Edit notebook
-marimo edit map.py
+# Or edit interactively
+marimo edit expected_ap.py
 ```
 
-### Lean Proof
-```bash
-# Build the Lean project
-cd lean && lake build
-```
+## Repository Structure
 
-## Key Results
+- **`expected_ap.md`** - Complete mathematical paper with proofs
+- **`expected_ap.py`** - Interactive marimo notebook demonstrating all results
+- **`lean/`** - Formal proof in Lean 4 (work in progress)
 
-For L items with M relevant items:
-- **Expected AP**: E[AP] = (1/L) � [(M-1)/(L-1) � (L - H_L) + H_L]
-- **Asymptotic behavior**: E[AP] � M/L as L � 
-- **Normalized AP**: Scales AP to [-1, 1] for significance testing
+## Key Result
 
-Where H_L = �(1/k) for k=1 to L is the L-th harmonic number.
+Under uniformly random ranking with M relevant items out of L total:
+
+**E[AP] = (1/L) × [(M-1)/(L-1) × (L - H_L) + H_L]**
+
+where H_L is the L-th harmonic number. This corrects the naive approximation E[AP] ≈ M/L.

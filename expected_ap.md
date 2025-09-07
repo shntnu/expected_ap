@@ -219,7 +219,7 @@ We validate our formulas through three independent methods:
 
 All three methods agree to machine precision for the exact methods (difference < $10^{-15}$) and to sampling error for Monte Carlo (< $10^{-4}$ with 10,000 trials). We tested configurations ranging from $L = 5$ to $L = 50,000$ with various prevalence levels.
 
-The accompanying interactive notebook (`map.py`) provides:
+The accompanying interactive notebook (`expected_ap.py`) provides:
 
 - Complete numerical comparisons across all test cases
 - Reproduction of Bestgen's Table 2

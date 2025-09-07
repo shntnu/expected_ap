@@ -13,15 +13,15 @@ This repository contains a mathematical analysis of Expected Average Precision (
 - **Note**: The Lean proof is work in progress - contains incomplete proofs marked with `sorry` that need completion
 
 ### Python Development
-- Run the marimo notebook: `marimo run map.py`
-- Edit the notebook interactively: `marimo edit map.py`
+- Run the marimo notebook: `marimo run expected_ap.py`
+- Edit the notebook interactively: `marimo edit expected_ap.py`
 - Python dependencies are inline in the script (PEP 723 format)
 
 ## Architecture
 
 ### Core Components
 
-1. **map.py**: Marimo notebook containing:
+1. **expected_ap.py**: Marimo notebook containing:
    - Closed-form calculation of expected AP using harmonic numbers
    - Monte Carlo simulation for validation
    - Normalized AP metrics
