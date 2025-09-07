@@ -11,3 +11,5 @@ wheels/
 .lake
 resources/
 .claude/
+
+.DS_Store
