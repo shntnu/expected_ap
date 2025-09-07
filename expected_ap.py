@@ -22,10 +22,10 @@ def _(mo):
         r"""
     # Expected Average Precision Under Random Ranking
 
-    Interactive supplement to the paper demonstrating:
+    Interactive supplement demonstrating:
 
-    1. Exact finite-sample formula (Theorem 1)
-    2. Equivalence of harmonic and hypergeometric methods
+    1. Exact finite-sample formula via harmonic numbers
+    2. Equivalence with Bestgen's (2015) hypergeometric method
     3. Asymptotic O(log L/L) convergence
     4. Statistical testing implications
     """
@@ -101,17 +101,17 @@ def _(np):
 def _(mo):
     mo.md(
         """
-    ## Section 2: Main Result - Closed Form (Theorem 1)
+    ## Section 2: Main Result - Closed Form
 
     Under uniformly random ranking:
 
     $$\\mathbb{E}[\\text{AP}] = \\frac{1}{L}\\left[\\frac{M-1}{L-1}(L-H_L) + H_L\\right]$$
 
-    Alternative form (Corollary 1):
+    Alternative form:
 
     $$\\mathbb{E}[\\text{AP}] = p + \\frac{N(H_L - 1)}{L(L-1)}$$
 
-    where $p = M/L$ is the prevalence.
+    where $p = M/L$ is the prevalence. This shows E[AP] > p for finite samples.
     """
     )
     return
@@ -121,7 +121,7 @@ def _(mo):
 def _(harmonic_number):
     def expected_ap_closed_form(M: int, N: int) -> float:
         """
-        Theorem 1: Closed-form expected AP under random ranking.
+        Closed-form expected AP under random ranking.
         Uses harmonic numbers for exact finite-sample calculation.
         """
         L = M + N
@@ -136,7 +136,7 @@ def _(harmonic_number):
 
     def expected_ap_prevalence_form(M: int, N: int) -> float:
         """
-        Corollary 1: Prevalence-plus-correction form.
+        Prevalence-plus-correction form.
         Shows explicitly that E[AP] = p + positive_bias_term.
         """
         L = M + N
@@ -155,9 +155,9 @@ def _(harmonic_number):
 def _(mo):
     mo.md(
         """
-    ## Section 3: Algorithmic Method (Theorem 2 - Bestgen 2015)
+    ## Section 3: Bestgen's (2015) Hypergeometric Method
 
-    Alternative calculation using hypergeometric distribution:
+    Bestgen (2015) first identified that E[AP] ≠ prevalence and provided this exact calculation:
 
     $$\\mathbb{E}[\\text{AP}] = \\frac{1}{M} \\sum_{i=1}^{M} \\sum_{n=i}^{N+i} P_{\\text{hyper}}(i; L, M, n) \\cdot \\left(\\frac{i}{n}\\right)^2$$
     """
@@ -169,7 +169,7 @@ def _(mo):
 def _(hypergeom):
     def expected_ap_hypergeometric(M: int, N: int, max_L: int = 200) -> float:
         """
-        Theorem 2 (Bestgen 2015): Exact expected AP using hypergeometric distribution.
+        Bestgen (2015): Exact expected AP using hypergeometric distribution.
         Limited to L ≤ max_L for computational efficiency.
         """
         L = M + N
@@ -367,7 +367,7 @@ def _(expected_ap_closed_form, pd, simulate_random_ap):
 def _(mo):
     mo.md(
         """
-    ## Section 7: Asymptotic Analysis (Theorem 3)
+    ## Section 7: Asymptotic Analysis
 
     As $L \\to \\infty$ with fixed prevalence $p$:
 

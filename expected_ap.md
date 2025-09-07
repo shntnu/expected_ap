@@ -17,14 +17,14 @@ Average Precision (AP) is a fundamental metric in information retrieval, machine
 2. Establishing baseline performance expectations
 3. Detecting non-random patterns in ranked outputs
 
-While it is commonly assumed that the expected AP under random ranking equals the prevalence (proportion of relevant items), this approximation is only valid asymptotically. For finite samples—particularly common in specialized domains with limited labeled data—the exact expected value differs substantially from prevalence.
+While it is commonly assumed that the expected AP under random ranking equals the prevalence (proportion of relevant items), Bestgen (2015) demonstrated that this is only an approximation. For finite samples—particularly common in specialized domains with limited labeled data—the exact expected value differs substantially from prevalence.
 
 ### 1.1 Contributions
 
 This paper provides a comprehensive treatment of expected AP under random ranking:
 
 1. **Closed-form Derivation:** We present a complete proof of the exact formula using exchangeability arguments (Theorem 1)
-2. **Unified Presentation:** We connect the harmonic number formula with Bestgen's (2015) hypergeometric algorithm, showing their equivalence
+2. **Unified Presentation:** We provide an alternative derivation using harmonic numbers and connect it with Bestgen's (2015) hypergeometric algorithm, showing their equivalence
 3. **Asymptotic Analysis:** We characterize the precise $O(\log L/L)$ convergence rate with explicit constants
 4. **Practical Implications:** We quantify the impact on statistical testing and provide implementation guidance
 
@@ -178,7 +178,7 @@ Python implementations of both methods are available at: [repository URL]
 ## 7. Related Work
 
 - **Robertson (2008):** Introduced alternative AP formulations but assumed asymptotic behavior
-- **Bestgen (2015):** First noted the exact formula differs from prevalence; provided algorithmic approach
+- **Bestgen (2015):** First formally identified that the common prevalence approximation is incorrect; provided the exact algorithmic approach using hypergeometric distributions
 - **Yilmaz et al. (2008):** Studied AP variance but under different assumptions
 
 ## 8. Conclusion
@@ -219,7 +219,7 @@ We validate our formulas through three independent methods:
 
 All three methods agree to machine precision for the exact methods (difference < $10^{-15}$) and to sampling error for Monte Carlo (< $10^{-4}$ with 10,000 trials). We tested configurations ranging from $L = 5$ to $L = 50,000$ with various prevalence levels.
 
-The accompanying interactive notebook (`expected_ap.py`) [![Open in molab](https://molab.marimo.io/molab-shield.png)](https://molab.marimo.io/notebooks/nb_y1a7YRZf1h4JbRySEHfKSR) provides:
+The accompanying interactive notebook (`expected_ap.py`) provides:
 
 - Complete numerical comparisons across all test cases
 - Reproduction of Bestgen's Table 2
