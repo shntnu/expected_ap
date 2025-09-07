@@ -9,7 +9,7 @@ This project provides both theoretical derivation and practical implementation o
 ## Components
 
 - **map.py** - Interactive Python notebook with simulations and visualizations
-- **expected_ap.lean** - Formal proof in Lean 4 (work in progress - several incomplete proofs)
+- **lean/** - Formal proof in Lean 4 (work in progress - contains incomplete proofs)
 - **expected_ap.md** - Mathematical exposition
 
 ## Quick Start
@@ -26,7 +26,7 @@ marimo edit map.py
 ### Lean Proof
 ```bash
 # Build the Lean project
-lake build
+cd lean && lake build
 ```
 
 ## Key Results

@@ -9,13 +9,13 @@ This repository contains a mathematical analysis of Expected Average Precision (
 ## Commands
 
 ### Lean Development
-- Build the Lean project: `lake build`
-- **Note**: The Lean proof is work in progress - contains several incomplete proofs marked with `sorry` that need completion
+- Build the Lean project: `cd lean && lake build`
+- **Note**: The Lean proof is work in progress - contains incomplete proofs marked with `sorry` that need completion
 
 ### Python Development
 - Run the marimo notebook: `marimo run map.py`
 - Edit the notebook interactively: `marimo edit map.py`
-- Python dependencies are managed with `uv` (see pyproject.toml)
+- Python dependencies are inline in the script (PEP 723 format)
 
 ## Architecture
 
@@ -27,7 +27,7 @@ This repository contains a mathematical analysis of Expected Average Precision (
    - Normalized AP metrics
    - Interactive visualizations with Altair
 
-2. **expected_ap.lean**: Formal Lean 4 proof (work in progress) containing:
+2. **lean/expected_ap.lean**: Formal Lean 4 proof (work in progress) containing:
    - Definition of Average Precision for ranked lists
    - Harmonic number computation
    - Uniform averaging over permutations
