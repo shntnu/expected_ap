@@ -140,10 +140,12 @@ The dominant term is $\frac{(1-p)\log L}{L}$. $\square$
 $$\frac{\mathbb{E}[\text{AP}] - p}{p} = \frac{1-p}{p} \cdot \frac{H_L - 1}{L-1} \approx \frac{1-p}{p} \cdot \frac{\log L}{L}$$
 
 This shows the bias is most pronounced when:
+
 1. Prevalence is low (small $p$)
 2. Sample size is small (small $L$)
 
 **Example.** For $p = 0.1$:
+
 - $L = 100$: relative error ≈ 38%
 - $L = 1000$: relative error ≈ 6%
 - $L = 10000$: relative error ≈ 0.8%
