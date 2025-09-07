@@ -4,7 +4,7 @@ Exact finite-sample analysis and computational methods for Expected Average Prec
 
 ## Overview
 
-This repository contains the theoretical derivation and implementation showing that E[AP] under random ranking equals prevalence plus a O(log L/L) bias term, not just prevalence as commonly assumed.
+This repository provides a closed-form formula for Expected Average Precision (E[AP]) under random ranking. Building on Bestgen's (2015) identification that E[AP] ≠ prevalence, we derive an efficient closed-form solution using harmonic numbers: E[AP] = prevalence + O(log L/L).
 
 See [`expected_ap.md`](expected_ap.md) for the full mathematical exposition, or [`expected_ap_simple.md`](expected_ap_simple.md) for a simplified step-by-step derivation.
 
