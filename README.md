@@ -23,7 +23,7 @@ marimo edit expected_ap.py
 - **`expected_ap.md`** - Complete mathematical paper with proofs
 - **`expected_ap_simple.md`** - Simplified step-by-step derivation for accessibility
 - **`expected_ap.py`** - Interactive marimo notebook demonstrating all results  [![Open in molab](https://molab.marimo.io/molab-shield.png)](https://molab.marimo.io/notebooks/nb_y1a7YRZf1h4JbRySEHfKSR)
-- **`lean/`** - Formal proof in Lean 4 (work in progress)
+- **`lean/`** - Formal proof in Lean 4 (complete, zero `sorry` placeholders)
 
 ## Key Result
 
@@ -32,6 +32,12 @@ Under uniformly random ranking with M relevant items out of L total:
 **E[AP] = (1/L) × [(M-1)/(L-1) × (L - H_L) + H_L]**
 
 where H_L is the L-th harmonic number. This corrects the naive approximation E[AP] ≈ M/L.
+
+## Lean Formal Proof
+
+The `lean/` directory contains a complete Lean 4 + Mathlib formalization of the main theorem (`expected_ap_closed_form`), verified by `lake build` with no `sorry` placeholders.
+
+The proof was developed collaboratively by Claude Opus 4.6 and GPT-5.4 (via Codex). The permutation counting infrastructure and harmonic identities were built by Claude; the downstream algebraic proofs and the identification of a necessary `M ≥ 1` guard on the theorem statement were contributed by GPT-o3 in `lean/expected_ap_gpt_54.lean`.
 
 ## Generate PDFs
 

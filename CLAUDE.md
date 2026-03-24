@@ -10,7 +10,10 @@ This repository contains a mathematical analysis of Expected Average Precision (
 
 ### Lean Development
 - Build the Lean project: `cd lean && lake build`
-- **Note**: The Lean proof is work in progress - contains incomplete proofs marked with `sorry` that need completion
+- If `lake` is not on PATH (elan shims missing), use the toolchain directly: `cd lean && ~/.elan/toolchains/leanprover--lean4---v4.23.0-rc2/bin/lake build`
+- Check `lean/lean-toolchain` for the expected Lean version
+- **Note**: The Lean proof is complete — all theorems compile with zero `sorry` placeholders
+- Lean LSP MCP tools (`lean_goal`, `lean_diagnostic_messages`, etc.) are available for interactive proof development
 
 ### Python Development
 - Run the marimo notebook: `marimo run expected_ap.py`
@@ -27,13 +30,15 @@ This repository contains a mathematical analysis of Expected Average Precision (
    - Normalized AP metrics
    - Interactive visualizations with Altair
 
-2. **lean/expected_ap.lean**: Formal Lean 4 proof (work in progress) containing:
+2. **lean/expected_ap.lean**: Complete Lean 4 + Mathlib formal proof containing:
    - Definition of Average Precision for ranked lists
-   - Harmonic number computation
-   - Uniform averaging over permutations
+   - Harmonic number computation and identities
+   - Permutation counting via `decomposeFin` decomposition
    - Main theorem: `expected_ap_closed_form` proving E[AP] = (1/L) * ((M-1)/(L-1) * (L - H_L) + H_L)
 
-3. **expected_ap.md**: Mathematical exposition of the theoretical results
+3. **lean/expected_ap_gpt_54.lean**: Alternative proof path developed by GPT-5.4 via Codex, providing the downstream algebraic proofs and the `hM` guard fix
+
+4. **expected_ap.md**: Mathematical exposition of the theoretical results
 
 ## Key Mathematical Concepts
 
@@ -44,6 +49,7 @@ This repository contains a mathematical analysis of Expected Average Precision (
 
 ## Development Notes
 
-- The Lean proofs use exchangeability arguments and hypergeometric distributions
+- The Lean proof uses `Equiv.Perm.decomposeFin` decomposition and `Equiv.mulRight` swap bijections for permutation counting (not exchangeability)
+- `expected_ap_closed_form` requires `hM : numRelevant y ≠ 0` — when M=0, AP is 0 by convention but the harmonic formula is nonzero for L > 1
 - The Python simulation validates the closed-form expressions through Monte Carlo
-- Both implementations handle edge cases (M=0, L=1) carefully
+- Pre-commit hooks are configured (`.pre-commit-config.yaml`): trailing whitespace, large files, ruff for Python
