@@ -1,9 +1,8 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
-#     "anthropic==0.66.0",
+#     "altair==5.5.0",
 #     "marimo",
-#     "matplotlib==3.10.6",
 #     "numpy==2.1.3",
 #     "pandas==2.3.2",
 #     "scipy==1.14.1",
