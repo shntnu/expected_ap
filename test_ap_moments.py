@@ -21,6 +21,7 @@ from ap_moments import (
     cov_ap,
     cov_ap_hetero,
     design_effect,
+    eap3,
     exact_map_pmf,
     exact_map_tail,
     expected_ap,
@@ -115,6 +116,21 @@ def test_cov_ap_matches_exact_quantile_integration():
             covariance, mean = cov_by_integration(L, M)
             assert covariance == cov_ap(L, M), (L, M)
             assert mean == expected_ap(L, M), (L, M)  # the mixing is the right one
+
+
+def test_eap3_matches_enumeration():
+    for L in range(1, 13):
+        for M in range(1, L + 1):
+            aps = brute_ap(L, M)
+            exact = sum((a**3 for a in aps), Fraction(0)) / len(aps)
+            assert eap3(L, M) == exact, (L, M)
+
+
+def test_eap3_anchors():
+    for L in range(2, 40):
+        assert eap3(L, 1) == harmonic(L, 3) / L  # AP = 1/R, R uniform
+        assert eap3(L, L) == 1  # AP deterministically 1
+    assert eap3(2, 1) == Fraction(9, 16)
 
 
 def _conditional_mean_poly(L: int, M: int) -> list[Fraction]:

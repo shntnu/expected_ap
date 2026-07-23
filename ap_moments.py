@@ -50,6 +50,7 @@ __all__ = [
     "cov_ap",
     "cov_ap_hetero",
     "design_effect",
+    "eap3",
     "exact_map_pmf",
     "exact_map_tail",
     "expected_ap",
@@ -145,6 +146,110 @@ def var_ap(L: int, M: int) -> Fraction:
     )
 
     return (e_w2 - e_w * e_w) / Fraction(M * M)
+
+
+def eap3(L: int, M: int) -> Fraction:
+    """Exact E[AP^3] under uniform random ranking of L items, M of them relevant.
+
+    Third raw moment of the same law as `expected_ap` and `var_ap`.  With m_r as in
+    `var_ap`, H = H_L, H2 = H^(2)_L, H3 = H^(3)_L, and ONE extra weight-3 generator,
+    the finite Euler sum G = sum_{k<=L} H_k / k^2:
+
+        E[W^3] = m1*H3
+               + m2*(7*H2 + 6*H*H2 - 19*H3 + 6*G)
+               + m3*(30*H + 21*H^2 + 6*H^3 + (3L-66)*H2 - 51*H*H2 + 81*H3 - 24*G)
+               + m4*(58*L + (24L-141)*H + (6L-195/2)*H^2 - 26*H^3
+                     + (343/2-15L)*H2 + 129*H*H2 - 139*H3 + 30*G)
+               + m5*(15L^2 - 132*L + (3L^2-57L+201)*H + (273/2-15L)*H^2 + 35*H^3
+                     + (21L-345/2)*H2 - 129*H*H2 + 106*H3 - 12*G)
+               + m6*(L^3 - 15L^2 + 74*L - (3L^2-33L+90)*H + (9L-60)*H^2 - 15*H^3
+                     - (9L-60)*H2 + 45*H*H2 - 30*H3)
+        E[AP^3] = E[W^3] / M^3
+
+    The G term is not removable: the pure weight-3 basis {1, H, H^2, H^3, H2, H*H2, H3}
+    with (L, M)-rational coefficients provably cannot express E[W^3] (the exact linear
+    systems are inconsistent, confirmed by modular tests over two independent 61-bit
+    primes).  Collected, coeff(G) = 6M(M-1)(L-M)(L-M-1)(L-2M) / (L(L-1)(L-2)(L-3)(L-4)),
+    vanishing only at M in {1, L/2, L-1, L}.
+
+    Two independent derivations (exact ansatz identification against a moment DP out to
+    L = 120, and a mechanical 6-index coincidence-pattern expansion over 818 patterns)
+    produced this identical formula; it matches exhaustive enumeration for all
+    1 <= M <= L <= 13 (the test suite re-checks L <= 12) and the DP to L = 120.
+    Anchors: M = 1 gives E[AP^3] = H3_L / L; M = L gives exactly 1.
+    """
+    if not (1 <= M <= L):
+        raise ValueError("require 1 <= M <= L")
+
+    H = harmonic(L)
+    H2 = harmonic(L, 2)
+    H3 = harmonic(L, 3)
+    G = Fraction(0)
+    Hk = Fraction(0)
+    for k in range(1, L + 1):
+        Hk += Fraction(1, k)
+        G += Hk / (k * k)
+
+    def m(r: int) -> Fraction:
+        if r > M:
+            return Fraction(0)
+        num = den = 1
+        for t in range(r):
+            num *= M - t
+            den *= L - t
+        return Fraction(num, den)
+
+    e_w3 = (
+        m(1) * H3
+        + m(2) * (7 * H2 + 6 * H * H2 - 19 * H3 + 6 * G)
+        + m(3)
+        * (
+            30 * H
+            + 21 * H**2
+            + 6 * H**3
+            + (3 * L - 66) * H2
+            - 51 * H * H2
+            + 81 * H3
+            - 24 * G
+        )
+        + m(4)
+        * (
+            58 * L
+            + (24 * L - 141) * H
+            + (6 * L - Fraction(195, 2)) * H**2
+            - 26 * H**3
+            + (Fraction(343, 2) - 15 * L) * H2
+            + 129 * H * H2
+            - 139 * H3
+            + 30 * G
+        )
+        + m(5)
+        * (
+            15 * L**2
+            - 132 * L
+            + (3 * L**2 - 57 * L + 201) * H
+            + (Fraction(273, 2) - 15 * L) * H**2
+            + 35 * H**3
+            + (21 * L - Fraction(345, 2)) * H2
+            - 129 * H * H2
+            + 106 * H3
+            - 12 * G
+        )
+        + m(6)
+        * (
+            L**3
+            - 15 * L**2
+            + 74 * L
+            - (3 * L**2 - 33 * L + 90) * H
+            + (9 * L - 60) * H**2
+            - 15 * H**3
+            - (9 * L - 60) * H2
+            + 45 * H * H2
+            - 30 * H3
+        )
+    )
+
+    return e_w3 / Fraction(M**3)
 
 
 # ----------------------------------------------------------------------------------
