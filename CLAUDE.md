@@ -38,7 +38,7 @@ This repository contains a mathematical analysis of Expected Average Precision (
 
 3. **lean/expected_ap_gpt_54.lean**: Alternative proof path developed by GPT-5.4 via Codex, providing the downstream algebraic proofs and the `hM` guard fix
 
-4. **expected_ap.md**: Mathematical exposition of the theoretical results
+4. **ap_distribution.md**: Mathematical exposition of the theoretical results
 
 ## Key Mathematical Concepts
 

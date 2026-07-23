@@ -1,4 +1,4 @@
-# Expected Average Precision Under Random Ranking: Exact Finite-Sample Analysis and Computational Methods
+# Average Precision Under Random Ranking: Exact Expectation and Distribution
 
 **Author:** shntnu and claude
 
@@ -10,7 +10,9 @@
 
 ## Abstract
 
-We derive the exact finite-sample expected value of Average Precision (AP) under uniformly random ranking, correcting the common approximation that equates expected AP with prevalence. We present two equivalent derivations: an analytical approach using harmonic numbers and an algorithmic method via hypergeometric distributions. Our main result shows that $\mathbb{E}[\text{AP}] = p + O(\log L/L)$ where $p$ is the prevalence and $L$ the list length, revealing a persistent positive bias that affects statistical significance testing. We provide explicit formulas, asymptotic analysis, and practical implications for information retrieval evaluation.
+We derive the exact finite-sample expectation and probability distribution of Average Precision (AP) under uniformly random ranking, correcting the common approximation that equates expected AP with prevalence.
+The expectation has a harmonic-number closed form, while the full discrete law is a finite count over relevant-rank subsets, with an equivalent coefficient-generating formula.
+Our expectation result shows that $\mathbb{E}[\text{AP}] = p + O(\log L/L)$ where $p$ is the prevalence and $L$ the list length, revealing a persistent positive bias that affects statistical significance testing.
 
 ## 1. Introduction
 
@@ -29,7 +31,8 @@ This paper provides a comprehensive treatment of expected AP under random rankin
 1. **Closed-form Derivation:** We present a complete proof of the exact formula using exchangeability arguments (Theorem 1)
 2. **Unified Presentation:** We provide an alternative derivation using harmonic numbers and connect it with Bestgen's (2015) hypergeometric algorithm, showing their equivalence
 3. **Asymptotic Analysis:** We characterize the precise $O(\log L/L)$ convergence rate with explicit constants
-4. **Practical Implications:** We quantify the impact on statistical testing and provide implementation guidance
+4. **Full Distribution:** We give the exact finite PMF, including the multiplicities caused by AP collisions
+5. **Practical Implications:** We quantify the impact on statistical testing and provide implementation guidance
 
 ## 2. Problem Formulation
 
@@ -119,11 +122,62 @@ The double summation aggregates these contributions. $\square$
 
 **Remark.** Bestgen's algorithmic approach, while computationally more intensive ($O(ML)$ operations), provides insight into the probabilistic structure and serves as independent validation of Theorem 1. We include it here to demonstrate the equivalence of the two methods.
 
+### 3.4 Exact AP Distribution
+
+Let $1 \le R_1 < \cdots < R_M \le L$ be the ordered ranks of the relevant items.
+A uniform item permutation induces a uniform choice among the $\binom{L}{M}$ possible relevant-rank sets: every set has exactly $M!(L-M)!$ permutation preimages.
+At rank $R_j$, exactly $j$ relevant items have appeared, so
+
+$$A = \text{AP} = \frac{1}{M}\sum_{j=1}^{M}\frac{j}{R_j}.$$
+
+**Theorem 3 (Exact AP PMF).** *For $1 \le M \le L$ and any rational $a$,*
+
+$$
+\Pr(A=a)
+= \frac{1}{\binom{L}{M}}
+\sum_{1 \le r_1 < \cdots < r_M \le L}
+\mathbf{1}\left\{a=\frac{1}{M}\sum_{j=1}^{M}\frac{j}{r_j}\right\}.
+$$
+
+Equivalently, the AP law is the finite mixture
+
+$$
+\mathcal{L}(A)
+= \frac{1}{\binom{L}{M}}
+\sum_{1 \le r_1 < \cdots < r_M \le L}
+\delta_{\frac{1}{M}\sum_{j=1}^{M}j/r_j}.
+$$
+
+This formula retains multiplicity because the map from rank sets to AP values is not injective.
+For example, when $L=6$ and $M=2$, rank sets $(2,6)$ and $(3,4)$ both give $A=5/12$, so $\Pr(A=5/12)=2/15$.
+
+A coefficient form makes the same multiplicities explicit.
+Let $D=L!$, define
+
+$$K(r_1,\ldots,r_M)=\sum_{j=1}^{M}j\frac{D}{r_j},$$
+
+and let
+
+$$P_{L,M}(z)=\sum_{1 \le r_1 < \cdots < r_M \le L}z^{K(r_1,\ldots,r_M)}.$$
+
+Then every AP value lies on the rational grid $k/(MD)$ and
+
+$$
+\Pr\left(A=\frac{k}{MD}\right)
+=\frac{[z^k]P_{L,M}(z)}{\binom{L}{M}},
+\qquad
+P_{L,M}(1)=\binom{L}{M}.
+$$
+
+For $M=0$, the repository's convention gives the point mass $A=0$.
+For $M=L$, the law is the point mass $A=1$.
+The Lean theorem `uniformAPMass_closed_form_explicit` proves the subset-count formula directly from the original uniform-permutation definition.
+
 ## 4. Asymptotic Analysis
 
 ### 4.1 Convergence Rate
 
-**Theorem 3 (Asymptotic Behavior).** *As $L \to \infty$ with prevalence $p$ held fixed:*
+**Theorem 4 (Asymptotic Behavior).** *As $L \to \infty$ with prevalence $p$ held fixed:*
 
 $$\mathbb{E}[\text{AP}] = p + \frac{(1-p)\log L}{L} + O\left(\frac{1}{L}\right)$$
 
@@ -164,9 +218,24 @@ Under $H_0$, the expected value is **not** the prevalence but rather given by Th
 1. **Type I Error Inflation:** Falsely rejecting $H_0$ when AP exceeds prevalence but not $\mathbb{E}[\text{AP}]$
 2. **Power Reduction:** Requiring larger effect sizes to achieve significance
 
-### 5.2 Variance Under Random Ranking
+### 5.2 Exact Variance and Tail Probabilities
 
-While beyond our scope, the variance of AP under random ranking is also needed for complete statistical testing. Future work should derive the exact finite-sample variance formula.
+The full PMF in Theorem 3 already determines the exact finite-sample variance:
+
+$$
+\operatorname{Var}(A)
+= \sum_{a} a^2\Pr(A=a)-\mathbb{E}[A]^2.
+$$
+
+It also gives exact upper-tail probabilities for an observed value $a_{\mathrm{obs}}$:
+
+$$
+\Pr(A \ge a_{\mathrm{obs}})
+= \sum_{a \ge a_{\mathrm{obs}}}\Pr(A=a).
+$$
+
+Thus neither quantity is mathematically unknown.
+The remaining problems are to simplify the variance into a compact analytic expression comparable to Theorem 1, and to compute tail probabilities without enumerating up to $\binom{L}{M}$ rank sets.
 
 ## 6. Implementation Notes
 
@@ -188,14 +257,16 @@ Python implementations of both methods are available at: [repository URL]
 
 ## 8. Conclusion
 
-We have provided a complete characterization of expected Average Precision under random ranking, revealing that the common prevalence approximation incurs a logarithmic finite-sample bias. Our dual derivation—analytical via harmonic numbers and algorithmic via hypergeometric distributions—offers both theoretical insight and practical computational methods. These results are essential for proper statistical testing in information retrieval and should replace the naive prevalence approximation in finite-sample settings.
+We have provided exact finite-sample formulas for both the expectation and full discrete distribution of Average Precision under random ranking.
+The harmonic expectation reveals the bias in the prevalence approximation, while the rank-subset PMF gives exact atom and tail probabilities.
 
 ### Future Directions
 
-1. Derive the exact finite-sample variance formula
-2. Extend to graded relevance (NDCG, ERR)
-3. Characterize the full distribution, not just moments
-4. Develop efficient approximations for the tail probabilities
+The first and third items concern analytic simplicity and computational scale, not the existence of exact finite answers.
+
+1. Derive a compact analytic formula for the second moment and variance
+2. Extend the analysis to graded-relevance metrics such as NDCG and ERR
+3. Develop scalable exact algorithms or controlled approximations for tail probabilities at large $L$ and $M$
 
 ## References
 
