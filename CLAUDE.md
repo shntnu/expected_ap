@@ -12,7 +12,7 @@ This repository contains a mathematical analysis of Expected Average Precision (
 - Build the Lean project: `cd lean && lake build`
 - If `lake` is not on PATH (elan shims missing), use the toolchain directly: `cd lean && ~/.elan/toolchains/leanprover--lean4---v4.23.0-rc2/bin/lake build`
 - Check `lean/lean-toolchain` for the expected Lean version
-- **Note**: All Lean theorems compile with zero `sorry` placeholders except one declared exception: `varianceAP_closed_form` in `lean/ap_moments.lean` (the general variance closed form), isolated in `section Unproved` and disclosed in `AP_MOMENTS.md`. `lake build` emits exactly that one warning.
+- **Note**: The Lean proofs are complete — all theorems across all three modules (`expected_ap`, `ap_distribution`, `ap_moments`) compile with zero `sorry` placeholders, including the general variance closed form `varianceAP_closed_form`.
 - Lean LSP MCP tools (`lean_goal`, `lean_diagnostic_messages`, etc.) are available for interactive proof development
 
 ### Python Development

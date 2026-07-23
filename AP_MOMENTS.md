@@ -4,7 +4,7 @@
 This branch adds the second moment, the covariance between two APs that share a positive, and the exact null law of mAP.
 The point is a usable null for mAP, so the covariance matters: profiles that share relevant items are not independent, and treating them as independent understates the spread of mAP by roughly a factor of 1.84 in variance.
 
-Files: `ap_moments.py` (the formulas), `test_ap_moments.py` (checks against exhaustive enumeration), `calibration_check.py` (does the correction fix the false-positive rate), `lean/ap_moments.lean` (the formalisation, one `sorry`).
+Files: `ap_moments.py` (the formulas), `test_ap_moments.py` (checks against exhaustive enumeration), `calibration_check.py` (does the correction fix the false-positive rate), `lean/ap_moments.lean` (the formalisation, no `sorry`).
 
 ## The one model
 
@@ -103,14 +103,13 @@ It is also the reference the moment formulas are checked against.
 | `E[AP] = E[W]/M` in the `m_r` language | **PROVEN in Lean** | `uniformAvgAP_eq_expectedW_div`, `lean/ap_moments.lean` |
 | AP law = uniform law on `M`-subsets | **PROVEN in Lean** | `lean/ap_distribution.lean`; extended to arbitrary rank-set statistics by `uniformAvgOverPerms_comp_relevantRanks` |
 | `Var(AP) >= 0`; `Var = 0` at `M = 0` and `M = L`; `Var = H2/L - (H/L)^2` at `M = 1` | **PROVEN in Lean** | `varianceAP_nonneg`, `varianceAP_closed_form_of_numRelevant_eq_{zero,one,card}` |
-| **General `Var(AP)` closed form** | **NOT PROVEN. VERIFIED numerically** | `varianceAP_closed_form` in `lean/ap_moments.lean` is the file's single `sorry`. Verified by exhaustive enumeration of every rank subset for all `1 <= M <= L <= 12` (`test_ap_moments.py`), and inside Lean by `native_decide` on exact rationals for twelve `(L, M)` up to `L = 10`. |
+| **General `Var(AP)` closed form** | **PROVEN in Lean** | `varianceAP_closed_form` in `lean/ap_moments.lean`, no `sorry`: the 6-index coincidence-pattern expansion of `E[W^2]` is reduced to the four `sigSum` closed forms and assembled, with axiom footprint `propext`, `Classical.choice`, `Quot.sound` only. Independently verified by exhaustive enumeration of every rank subset for all `1 <= M <= L <= 12` (`test_ap_moments.py`), and inside Lean by `native_decide` on exact rationals for twelve `(L, M)` up to `L = 10`. |
 | `Cov(AP_i, AP_j)` for a shared positive | **ASSUMED model, then exact** | Nothing in Lean covers it. Given the model it is exact, checked against exact rational integration over the shared quantile for all `1 <= M <= L` with `2 <= L <= 7`, and against direct simulation of the model. |
 | `design_effect`, the correction inside `map_null_sd` | **ASSUMED (inherits tier 2)** | Exact ratio of two tier-2 quantities |
 | `Cov(AP_i, AP_j)` for **mismatched** `(L, M)` pairs | **ASSUMED model, then exact** | `cov_ap_hetero`: the same conditioning argument with per-list coefficients; the two cross terms `Cov(g1,l2)` and `Cov(l1,g2)` no longer merge. Checked against exact rational integration of the model for all `L1, L2 <= 5`, reduces exactly to `cov_ap` on the diagonal for `L <= 12`, and two independent derivations agreed exactly on all 6084 configs with `L1, L2 <= 12`. Replaces the former `sqrt(cov_i * cov_j)` guess in `map_null_sd`. |
 | `exact_map_pmf` / `exact_map_tail` | **VERIFIED, assumes independence** | Matches brute-force enumeration for single profiles; mass sums to exactly 1; its mean and variance match `expected_map` and `sum var_ap / n^2` exactly |
 
-The `sorry` is isolated in `section Unproved` at the end of `lean/ap_moments.lean`, and `lake build` reports it as its only warning.
-Nothing else in the file depends on it.
+The file carries no `sorry`: the general theorem is proved via a 12-lemma reduction (harmonic bridges, inclusion probabilities, the W-expansion, and the four coincidence-pattern sums) at the end of `lean/ap_moments.lean`.
 The `native_decide` checks are stated as anonymous `example`s, so no named theorem carries `Lean.ofReduceBool`.
 
 An independent re-derivation done for this review recomputed AP from label vectors the way a retrieval library does (sort by score, cumulative true positives over rank, averaged over the positives) rather than through `(1/M) sum j/R_j`, and reproduced both `expected_ap` and `var_ap` exactly for all 78 configurations with `L <= 12`.
@@ -190,5 +189,5 @@ uv run ap_moments.py
 uv run --with numpy calibration_check.py
 ```
 
-`lake build` is expected to emit exactly one warning, the `sorry` at `lean/ap_moments.lean:556`.
+`lake build` completes with no warnings; the repository is `sorry`-free.
 The calibration run takes about half a minute at the defaults; `--validate` re-checks the fast simulator against copairs and needs `--with pandas --with copairs`.

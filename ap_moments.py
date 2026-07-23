@@ -17,9 +17,9 @@ The results come in three tiers, in increasing order of what they assume.
 
 Tier 1, the marginal law of one AP.  `expected_ap` is PROVEN: it is
 `expected_ap_closed_form` in lean/expected_ap.lean, machine-checked with no `sorry`.
-`var_ap` is the matching second moment of the same law.  It is exact, and it was
-checked against exhaustive enumeration of every rank subset for all 1 <= M <= L <= 12,
-but it is not (yet) formalised in Lean.
+`var_ap` is the matching second moment of the same law.  It too is PROVEN:
+`varianceAP_closed_form` in lean/ap_moments.lean, machine-checked with no `sorry`,
+and additionally checked against exhaustive enumeration for all 1 <= M <= L <= 12.
 
 Tier 2, two APs that share a positive.  `cov_ap` is a statement about a MODEL, not
 about the ranking law alone, and the model has to be believed for the number to mean
@@ -110,7 +110,8 @@ def var_ap(L: int, M: int) -> Fraction:
         Var(AP) = (E[W^2] - E[W]^2) / M^2
 
     Exact in rational arithmetic, and E[W] here reproduces the Lean-proven mean.  The
-    variance itself is verified rather than formalised: it agrees with exhaustive
+    variance is PROVEN: `varianceAP_closed_form` in lean/ap_moments.lean establishes
+    exactly this closed form with no `sorry`, and it also agrees with exhaustive
     enumeration of all C(L,M) rank subsets for every 1 <= M <= L <= 12.
 
     Requires 1 <= M <= L.  Returns exactly 0 when M == L (AP is then deterministically

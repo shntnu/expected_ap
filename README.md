@@ -32,7 +32,7 @@ uvx marimo edit --sandbox expected_ap.py
 - **`lean/ap_distribution.lean`** - Formal proof of the exact AP probability mass function
 - **`ap_moments.py`** - Exact Var(AP), shared-positive covariance, design effect, and mAP null (tests in `test_ap_moments.py`, calibration study in `calibration_check.py`)
 - **`AP_MOMENTS.md`** - Moments results with a per-claim PROVEN / VERIFIED / ASSUMED status table
-- **`lean/ap_moments.lean`** - Formal statements and proofs for the moments layer (one declared `sorry`; see `AP_MOMENTS.md`)
+- **`lean/ap_moments.lean`** - Formal proofs for the moments layer, including the general variance closed form
 
 ## Key Result
 
@@ -55,7 +55,7 @@ The variance also has a compact harmonic closed form, and APs within a mAP group
 
 ## Lean Formal Proof
 
-The `lean/` directory contains complete Lean 4 + Mathlib formalizations of the expectation (`expected_ap_closed_form`) and every atom of the distribution (`uniformAPMass_closed_form_explicit`), verified by `lake build`. The one `sorry` in the repository is the declared general variance closed form (`varianceAP_closed_form` in `lean/ap_moments.lean`), isolated in its own section and disclosed in `AP_MOMENTS.md`.
+The `lean/` directory contains complete Lean 4 + Mathlib formalizations of the expectation (`expected_ap_closed_form`), every atom of the distribution (`uniformAPMass_closed_form_explicit`), and the variance (`varianceAP_closed_form`), verified by `lake build` with no `sorry` placeholders.
 
 The proof was developed collaboratively by Claude Opus 4.6 and GPT-5.4 (via Codex). The permutation counting infrastructure and harmonic identities were built by Claude; the downstream algebraic proofs and the identification of a necessary `M ≥ 1` guard on the theorem statement were contributed by GPT-5.4 in `lean/expected_ap_gpt_54.lean`.
 
