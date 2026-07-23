@@ -12,4 +12,4 @@ require mathlib from git
 
 @[default_target]
 lean_lib «ExpectedAp» where
-  roots := #[`expected_ap, `ap_distribution]
+  roots := #[`expected_ap, `ap_distribution, `ap_moments]
