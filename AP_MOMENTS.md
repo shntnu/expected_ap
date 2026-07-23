@@ -180,6 +180,45 @@ On data the tier-2 model describes exactly, matching three moments reaches nomin
 On realistic Gram data the shape correction beats variance-only and reaches nominal for small `n` (at `n = 3`, alpha 0.01: 0.0093 against 0.0146), but stays at 1.5x to 1.75x nominal for large `n`: the tier-2 model under-predicts the Gram null's skew, by up to about 4x at `n = 50`, because the shared feature matrix couples profiles beyond the single shared pair.
 The measured-moments oracle does reach nominal on Gram data too, so three moments suffice there as well - the remaining gap is the model, not the method.
 
+## Avoiding permutation tests: what it costs now, and what to do next
+
+The point of all of this is to get a p-value without permuting.
+Measured cost on this machine, so the trade-offs are concrete rather than asserted:
+
+| what you compute | cost at realistic size | scales to production `L`? |
+| --- | --- | --- |
+| `expected_ap`, `var_ap`, `eap3` (exact rational) | 2 ms / 6 ms / 83 ms at `L = 2000` | yes |
+| `cov_ap`, `cov_ap_hetero` (float) | under 0.1 ms at `L = 200` | yes |
+| `cov_and_tau` (exact `tau`) | 66 ms at `L = 50`, 0.6 s at `L = 100`, 5.7 s at `L = 200` | no |
+| `psi_quad` (triple term, `Q = 32`) | 0.15 s at `L = 50`, 1.1 s at `L = 100`, 9.3 s at `L = 200` | no |
+| `exact_map_pmf` (tier 3 convolution) | 0.6 s and 174,220 atoms for three `(14, 3)` profiles | no |
+
+So the two-moment null is effectively free at any `L`, and the third moment - the ingredient that fixes the far tail - is the expensive one, because `tau` re-runs an `O(L*M)` DP once per rank and `psi` builds a `Q x Q` table over an `L x L` grid.
+The exact PMF is worse than either: the AP grid denominator is `lcm(1..L)`, which grows like `e^L`, so tier 3 is a validation tool for toy sizes, not a way to get a tail probability.
+
+Ranked next steps, cheapest win first.
+
+**1. Cache the shape triple.** `(mu, sd, skew)` depends only on `(L, M, n)`, so a run testing thousands of groups at one configuration should pay `map_shape` once and reuse it; the p-value itself is then a closed-form Cornish-Fisher evaluation. This is a few lines and removes the cost objection for any fixed-configuration sweep.
+
+**2. Asymptotic skew.** `Var(AP) ~ p(1-p)/L` already lets large-`L` configs skip exact work; the same treatment of `m3` (a leading term in `p` and `L`, with the `tau` and `psi` shares expanded) would make the shape correction free at production `L` instead of impossible. This is the highest-value derivation left, and it is the same kind of exercise as the variance asymptotics that already worked.
+
+**3. Drop `psi` with a bound.** `map_shape` already reports each term's share of `m3` (`c_mu3`, `c_tau`, `c_psi`). Where the triple term is a small share, omitting it and bounding the induced skew error removes the most expensive piece outright. Check the share across the configurations of interest before assuming it is small.
+
+**4. Closed-form conditional second moment.** `tau` costs `O(L^2 M)` only because `dp_cond_moments` is called per forced rank; the conditional *mean* already has an `O(L)` closed form (`ew_cond_closed`). Deriving the conditional second moment in closed form the same way would cut `tau` by a factor of `M*L`.
+
+**5. Saddlepoint tail instead of a moment expansion.** The most promising direction, and the one that sidesteps the PMF explosion entirely: the cumulant generating function of `W` is computable by the same rank DP with `exp(t*c/r)` weights in `O(L*M)` floats, with no atom grid and no bignums, so a Lugannani-Rice tail costs milliseconds at any `L`. A probe on three `(14, 3)` profiles (independent null, where the exact law is available) gave one tail evaluation in 19 ms against 585 ms to build the 174,220-atom exact PMF, and far better deep-tail accuracy than any three-moment expansion:
+
+| threshold | exact | saddlepoint | Cornish-Fisher | Normal |
+| --- | --- | --- | --- | --- |
+| `mu + 2.0 sd` | 0.03834 | 0.04556 | 0.03893 | 0.02275 |
+| `mu + 3.0 sd` | 0.00609 | 0.00659 | 0.00729 | 0.00135 |
+| `mu + 3.5 sd` | 0.00208 | 0.00207 | 0.00291 | 0.00023 |
+
+At 3.5 sd the saddlepoint is within 0.5 percent while Cornish-Fisher is 40 percent high and the Normal is off by a factor of 9 - exactly the regime where the current correction is weakest.
+The wrinkle, stated because it needs fixing before use: the same probe ran about 20 percent high at 1.5 to 2.5 sd.
+That is the signature of applying the continuous Lugannani-Rice formula to a lattice variable (AP lives on a rational grid), so the lattice-corrected version is the thing to try, and the finite-difference derivatives in the probe should be replaced by DP-computed cumulants.
+Extending it past the independent null means saddlepointing conditional on the shared quantiles and integrating, which is more work than the moment route but is the only path here that stays accurate arbitrarily deep in the tail.
+
 ## Limitations
 
 The mean and the general variance formula are proved in Lean; the third moment `eap3` is not.
