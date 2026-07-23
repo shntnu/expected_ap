@@ -283,6 +283,49 @@ The lower endpoint of this interval is intentionally strict when $N\ge1$.
 At $t=b_{L,M}$, the displacement pattern $(0,\ldots,0,1,1)$ also enters the tail, so the displayed numerator undercounts by one.
 When $N=0$, AP is identically one and the formula remains valid at the endpoint.
 
+An elementary formula also holds near the minimum AP.
+Assume $M\ge2$ and $N\ge1$, and set
+
+$$
+a_{L,M}=1-\frac{N}{M}(H_L-H_N),
+\qquad
+c_{L,M}=a_{L,M}+\frac{3N+2}{MN(N+1)(N+2)}.
+$$
+
+For every $a_{L,M}\le t\le c_{L,M}$,
+
+$$
+T_{L,M}(t)
+=1-\frac{1}{\binom LM}
+\min\left(
+N+1,
+\left\lceil
+\frac{M(N+1)^2(t-a_{L,M})}
+{1+M(N+1)(t-a_{L,M})}
+\right\rceil
+\right).
+$$
+
+For the proof, retain the displacements $d_j=R_j-j$ and put $e_j=N-d_j$.
+Then $N\ge e_1\ge\cdots\ge e_M\ge0$, the minimum AP occurs at $e=(0,\ldots,0)$, and
+
+$$
+A-a_{L,M}
+=\frac1M\sum_{j=1}^M
+\frac{j e_j}{(N+j-e_j)(N+j)}.
+$$
+
+Outside the family $e=(d,0,\ldots,0)$, the smallest increase is attained at $e=(1,1,0,\ldots,0)$ and equals $(3N+2)/(MN(N+1)(N+2))$.
+Thus, throughout the displayed interval, the rank sets excluded from the upper tail all belong to the one-parameter family.
+For that family,
+
+$$
+A-a_{L,M}=\frac{d}{M(N+1-d)(N+1)}.
+$$
+
+Solving the strict inequality $A<t$ and counting the integers $0\le d\le N$ gives the ceiling term above.
+Unlike the near-one formula, this band includes its upper endpoint because the new configuration at $c_{L,M}$ satisfies $A=t$ and remains in the upper tail.
+
 The recurrence above computes an exact tail directly, but unrolling it reproduces the nested rank-set calculation rather than a harmonic-number collapse.
 The obstruction is visible already for $M=2$.
 For a rational threshold $t=p/q>0$ in lowest terms, define, for $1\le r<L$,
@@ -315,7 +358,18 @@ $$
 (r-n)(s-2n)\le2n^2.
 $$
 
-Thus even the two-relevant-item tail is a bounded hyperbola lattice-point problem, closely related to divisor summatory floor sums.
+The divisor sum occurs verbatim in this family.
+For every integer $n\ge1$ and $L\ge2n^2+2n$,
+
+$$
+\binom L2 T_{L,2}\left(\frac1{2n}\right)
+=nL-\frac{n(n+1)}2
++\sum_{d=1}^{2n-1}\left\lfloor\frac{2n^2}{d}\right\rfloor.
+$$
+
+Indeed, ranks $r\le n$ contribute $\sum_{r=1}^n(L-r)$.
+Writing every remaining contributing rank as $r=n+d$ leaves $1\le d\le2n-1$ and contribution $n-d+\lfloor2n^2/d\rfloor$; the linear terms cancel after summation.
+Thus even the two-relevant-item tail contains a standard truncated divisor-summatory function, or equivalently a bounded hyperbola lattice-point count.
 The connection is exact.
 Write $q=mp+c$ with $0\le c<p$ and set $n=2pr-q$ in the nontrivial part of the sum.
 Then
@@ -327,6 +381,7 @@ $$
 
 When $p=1$ and $q$ is even, $n=2d$ and the varying term is $\lfloor(q^2/2)/d\rfloor$, an interval of the ordinary divisor summatory floor sum.
 The usual reciprocity for linear floor sums does not remove this hyperbolic arithmetic term.
+Known exact algorithms for the ordinary divisor summatory function likewise evaluate the underlying lattice-point count rather than replace it by a harmonic or elementary expression [7].
 This explains why the expectation can simplify through linearity while the exact tail retains discrete arithmetic structure.
 
 The support can also be combinatorially large.
@@ -454,6 +509,8 @@ The first and third items concern analytic simplicity and computational scale, n
 [5] Zhang, P., & Su, W. (2012). Statistical inference on recall, precision and average precision under random selection. *Proceedings of FSKD*, 1348-1352.
 
 [6] Lopes, M., & Bontempi, G. (2014). On the null distribution of the precision and recall curve. *ECML PKDD*, 322-337.
+
+[7] Sladkey, R. (2012). A successive approximation algorithm for computing the divisor summatory function. *arXiv:1206.3369*.
 
 ## Appendix A: Proof of Harmonic Identity
 

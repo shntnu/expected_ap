@@ -45,7 +45,7 @@ If the relevant ranks are `1 <= R_1 < ... < R_M <= L`, then
 
 The count is necessary because different rank sets can yield the same AP.
 Exact tails can be computed recursively by conditioning on the final relevant rank.
-For thresholds sufficiently close to one, the tail also has a one-line exact formula involving only a floor and a binomial coefficient.
+For thresholds sufficiently close to either endpoint, the tail also has a one-line exact formula involving only a floor or ceiling and a binomial coefficient.
 No general harmonic simplification is known: already for two relevant items, the tail reduces to a shifted divisor-summatory floor sum.
 
 ## Lean Formal Proof
