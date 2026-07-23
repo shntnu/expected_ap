@@ -12,6 +12,7 @@
 
 We derive the exact finite-sample expectation and probability distribution of Average Precision (AP) under uniformly random ranking, correcting the common approximation that equates expected AP with prevalence.
 The expectation has a harmonic-number closed form, while the full discrete law is a finite count over relevant-rank subsets, with an equivalent coefficient-generating formula.
+The second and third moments also admit compact closed forms - the second machine-checked in Lean, the third involving an Euler sum outside the classical harmonic-number basis.
 Our expectation result shows that $\mathbb{E}[\text{AP}] = p + O(\log L/L)$ where $p$ is the prevalence and $L$ the list length, revealing a persistent positive bias that affects statistical significance testing.
 
 ## 1. Introduction
@@ -34,6 +35,7 @@ This paper provides a comprehensive treatment of expected AP under random rankin
 3. **Asymptotic Analysis:** We characterize the precise $O(\log L/L)$ convergence rate with explicit constants
 4. **Full Distribution and Tails:** We give the exact finite PMF, including the multiplicities caused by AP collisions, and an exact recursive tail formula
 5. **Practical Implications:** We quantify the impact on statistical testing and provide implementation guidance
+6. **Higher Moments:** We give compact closed forms for the second moment (machine-checked in Lean) and the third moment, the latter expressed via an Euler-sum generator beyond the classical harmonic numbers
 
 ## 2. Problem Formulation
 
@@ -398,11 +400,82 @@ For example, the 21 primes in $(10,100]$ imply at least $\binom{21}{10}=352716$ 
 Any exact tail formula for arbitrary $t$ must encode these breakpoints, whether through cases, floors, recurrence states, or coefficient extraction.
 This rules out a short explicit atom table, but it is not a symbolic formula-size lower bound or a proof of computational hardness.
 
+### 3.6 Second and Third Moments
+
+Write $W = M \cdot \text{AP} = \sum_{1 \le i \le k \le L} Z_i Z_k / k$, where $Z_k$ indicates that rank $k$ holds a relevant item (in the notation of Definition 1, $Z_k = y_k$), and let $m_r = \binom{M}{r}/\binom{L}{r}$ denote the probability that $r$ prescribed ranks are all relevant (so $m_r = 0$ for $r > M$).
+Powers of $W$ expand into sums over tuples of index pairs whose expectations depend only on how many distinct ranks appear, so the $r$-th moment of $W$ is a linear combination of $m_1, \ldots, m_{2r}$ with coefficients polynomial in $L$ and nested harmonic-type sums; for $r \le 2$ the generalized harmonic numbers suffice, while $r = 3$ requires one additional Euler sum (Theorem 6).
+Throughout, $H = H_L$, $H^{(2)} = H^{(2)}_L = \sum_{k \le L} k^{-2}$, and $H^{(3)} = H^{(3)}_L = \sum_{k \le L} k^{-3}$.
+
+**Theorem 5 (Second moment and variance).** *For $1 \le M \le L$,*
+
+$$
+\mathbb{E}[W^2]
+= m_1 H^{(2)}
++ m_2\!\left(2H^2 + 3H - 5H^{(2)}\right)
++ m_3\!\left(2LH + 5L - 5H^2 - 9H + 7H^{(2)}\right)
++ m_4\!\left(L^2 - 2LH - 5L + 3H^2 + 6H - 3H^{(2)}\right),
+$$
+
+*and $\operatorname{Var}(\text{AP}) = \left(\mathbb{E}[W^2] - \mathbb{E}[W]^2\right)/M^2$, where $\mathbb{E}[W] = m_1 H + m_2(L - H)$ recovers Theorem 1.*
+
+*Proof.* Machine-checked in Lean (`varianceAP_closed_form` in `lean/ap_moments.lean`; axiom footprint `propext`, `Classical.choice`, `Quot.sound`): $W^2$ is a sum over pairs of index pairs, classified by the coincidence pattern of the up-to-four ranks involved; the four pattern sums reduce to the displayed harmonic polynomials.
+Independently verified by exhaustive enumeration for all $1 \le M \le L \le 12$.
+(The Lean statement carries a $1 < L$ guard; at $L = 1$ the claim is trivial.) $\square$
+
+Equivalently, collected over a common denominator (valid for $L \ge 4$; the singular factors are removable at $L \in \{2, 3\}$):
+
+$$
+\mathbb{E}[\text{AP}^2]
+= \frac{L(M-1)(M-2)(LM + 2L - 5M) + H\,(L-3)(M-1)(2M-1)(L-M) + H^2\,(M-1)(L-M)(2L-3M) + H^{(2)}\,(L-M)(L-M-1)(L-3M)}
+{M\,L(L-1)(L-2)(L-3)}.
+$$
+
+**Variance asymptotics.** The two natural regimes behave differently and should not be conflated.
+At fixed prevalence $p = M/L$,
+
+$$
+\operatorname{Var}(\text{AP}) = \frac{p(1-p)}{L} + O\!\left(\frac{\log^2 L}{L^2}\right),
+$$
+
+the binomial-proportion rate.
+At fixed $M$ (the replicate-retrieval regime, $p \to 0$), the leading term comes instead from the $H^{(2)}$ coefficient of the collected form:
+
+$$
+\operatorname{Var}(\text{AP}) \sim \frac{\pi^2}{6\,M\,L},
+$$
+
+so the fixed-prevalence formula underestimates the fixed-$M$ variance by an unbounded factor.
+
+**Theorem 6 (Third moment).** *Define the finite Euler sum $G_L = \sum_{r=1}^{L} H_r / r^2$. For $1 \le M \le L$,*
+
+$$
+\mathbb{E}[W^3] = \sum_{k=1}^{6} m_k\, \Sigma_k, \qquad \mathbb{E}[\text{AP}^3] = \mathbb{E}[W^3]/M^3,
+$$
+
+*with*
+
+$$
+\begin{aligned}
+\Sigma_1 &= H^{(3)},\\
+\Sigma_2 &= 7H^{(2)} + 6H H^{(2)} - 19H^{(3)} + 6G_L,\\
+\Sigma_3 &= 30H + 21H^2 + 6H^3 + (3L - 66)H^{(2)} - 51H H^{(2)} + 81H^{(3)} - 24G_L,\\
+\Sigma_4 &= 58L + (24L - 141)H + \left(6L - \tfrac{195}{2}\right)H^2 - 26H^3 + \left(\tfrac{343}{2} - 15L\right)H^{(2)} + 129H H^{(2)} - 139H^{(3)} + 30G_L,\\
+\Sigma_5 &= 15L^2 - 132L + (3L^2 - 57L + 201)H + \left(\tfrac{273}{2} - 15L\right)H^2 + 35H^3 + \left(21L - \tfrac{345}{2}\right)H^{(2)} - 129H H^{(2)} + 106H^{(3)} - 12G_L,\\
+\Sigma_6 &= L^3 - 15L^2 + 74L - (3L^2 - 33L + 90)H + (9L - 60)H^2 - 15H^3 - (9L - 60)H^{(2)} + 45H H^{(2)} - 30H^{(3)}.
+\end{aligned}
+$$
+
+*Status.* Two independent derivations - exact linear identification against a rational moment dynamic program through $L = 120$, and mechanical expansion of all 818 six-index coincidence patterns - produced this identical formula, and it matches exhaustive enumeration for all $1 \le M \le L \le 13$.
+Unlike Theorems 1 and 5 it is not yet formalized.
+
+**Remark (a generator beyond the harmonic basis).** The seven-element weight-3 basis $\{1, H, H^2, H^3, H^{(2)}, H H^{(2)}, H^{(3)}\}$ does not suffice: exact linear systems expressing $G_L$ (equivalently the multiple harmonic sum $\sum_{i<j\le L} i^{-1} j^{-2} = G_L - H^{(3)}_L$) over that basis, with polynomial coefficients up to degree 12 over the natural falling-factorial denominators, are inconsistent - certified by exact modular computation over two independent 61-bit primes - so no representation with coefficients of degree at most 12 exists; we conjecture none exists at any degree.
+Collected (for $L \ge 5$), the coefficient of $G_L$ in $\mathbb{E}[W^3]$ is $6M(M-1)(L-M)(L-M-1)(L-2M) / [L(L-1)(L-2)(L-3)(L-4)]$, vanishing precisely when $M \in \{1, L-1, L\}$ or $2M = L$; everywhere else the Euler sum is genuinely present.
+
 ## 4. Asymptotic Analysis
 
 ### 4.1 Convergence Rate
 
-**Theorem 5 (Asymptotic Behavior).** *As $L \to \infty$ with prevalence $p$ held fixed:*
+**Theorem 7 (Asymptotic Behavior).** *As $L \to \infty$ with prevalence $p$ held fixed:*
 
 $$\mathbb{E}[\text{AP}] = p + \frac{(1-p)\log L}{L} + O\left(\frac{1}{L}\right)$$
 
@@ -461,7 +534,7 @@ $$
 
 The recurrence in Section 3.5 computes one exact tail without first constructing the whole PMF.
 Its worst-case work remains combinatorial, as the $M=2$ divisor-style reduction already indicates.
-The variance now has a compact analytic expression comparable to Theorem 1, proved in Lean (`varianceAP_closed_form` in `lean/ap_moments.lean`), recorded with its full status in `AP_MOMENTS.md`, and implemented in `ap_moments.py`; the third moment likewise has an exact closed form (`eap3`, numerically verified, requiring one generator beyond the harmonic basis).
+The variance now has a compact analytic expression (Theorem 5), proved in Lean (`varianceAP_closed_form` in `lean/ap_moments.lean`), recorded with its full status in `AP_MOMENTS.md`, and implemented in `ap_moments.py`; the third moment likewise has an exact closed form (Theorem 6; `eap3`, numerically verified, involving one Euler-sum generator beyond the harmonic basis).
 The remaining problem is to compute tail probabilities scalably without hiding the same count in coefficient extraction or nested floor sums.
 
 ## 6. Implementation Notes
@@ -491,7 +564,7 @@ The harmonic expectation reveals the bias in the prevalence approximation, while
 
 ### Future Directions
 
-The compact second-moment and variance formula, formerly listed here, is delivered in `AP_MOMENTS.md` and proved in Lean; the exact third moment is delivered there as well (verified, not yet formalised).
+The compact second-moment and variance formula, formerly listed here, is now Theorem 5 (Section 3.6), proved in Lean; the exact third moment is Theorem 6 (verified, not yet formalized), with implementation status recorded in `AP_MOMENTS.md`.
 The second item below concerns computational scale, not the existence of exact finite answers.
 
 1. Extend the analysis to graded-relevance metrics such as NDCG and ERR

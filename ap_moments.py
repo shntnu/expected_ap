@@ -166,10 +166,13 @@ def eap3(L: int, M: int) -> Fraction:
                      - (9L-60)*H2 + 45*H*H2 - 30*H3)
         E[AP^3] = E[W^3] / M^3
 
-    The G term is not removable: the pure weight-3 basis {1, H, H^2, H^3, H2, H*H2, H3}
-    with (L, M)-rational coefficients provably cannot express E[W^3] (the exact linear
-    systems are inconsistent, confirmed by modular tests over two independent 61-bit
-    primes).  Collected, coeff(G) = 6M(M-1)(L-M)(L-M-1)(L-2M) / (L(L-1)(L-2)(L-3)(L-4)),
+    The G term is not removable with polynomial coefficients up to degree 12: exact
+    linear systems expressing
+    G over the pure weight-3 basis {1, H, H^2, H^3, H2, H*H2, H3} with polynomial
+    coefficients up to degree 12 over the natural falling-factorial denominators are
+    inconsistent (certified modularly over two independent 61-bit primes); full
+    irreducibility at arbitrary degree is conjectured, not proven.  Collected,
+    coeff(G) = 6M(M-1)(L-M)(L-M-1)(L-2M) / (L(L-1)(L-2)(L-3)(L-4)),
     vanishing only at M in {1, L/2, L-1, L}.
 
     Two independent derivations (exact ansatz identification against a moment DP out to
