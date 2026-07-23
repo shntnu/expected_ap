@@ -461,7 +461,7 @@ $$
 
 The recurrence in Section 3.5 computes one exact tail without first constructing the whole PMF.
 Its worst-case work remains combinatorial, as the $M=2$ divisor-style reduction already indicates.
-The variance now has a compact analytic expression comparable to Theorem 1, recorded with its verification status in `AP_MOMENTS.md` and implemented in `ap_moments.py`; its general Lean proof remains open.
+The variance now has a compact analytic expression comparable to Theorem 1, proved in Lean (`varianceAP_closed_form` in `lean/ap_moments.lean`), recorded with its full status in `AP_MOMENTS.md`, and implemented in `ap_moments.py`; the third moment likewise has an exact closed form (`eap3`, numerically verified, requiring one generator beyond the harmonic basis).
 The remaining problem is to compute tail probabilities scalably without hiding the same count in coefficient extraction or nested floor sums.
 
 ## 6. Implementation Notes
@@ -491,7 +491,7 @@ The harmonic expectation reveals the bias in the prevalence approximation, while
 
 ### Future Directions
 
-The compact second-moment and variance formula, formerly listed here, is delivered in `AP_MOMENTS.md` (exhaustively verified; the general Lean proof is pending).
+The compact second-moment and variance formula, formerly listed here, is delivered in `AP_MOMENTS.md` and proved in Lean; the exact third moment is delivered there as well (verified, not yet formalised).
 The second item below concerns computational scale, not the existence of exact finite answers.
 
 1. Extend the analysis to graded-relevance metrics such as NDCG and ERR
