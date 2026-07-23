@@ -189,8 +189,8 @@ Measured cost on this machine, so the trade-offs are concrete rather than assert
 | --- | --- | --- |
 | `expected_ap`, `var_ap`, `eap3` (exact rational) | 2 ms / 6 ms / 83 ms at `L = 2000` | yes |
 | `cov_ap`, `cov_ap_hetero` (float) | under 0.1 ms at `L = 200` | yes |
-| `cov_and_tau` (exact `tau`) | 66 ms at `L = 50`, 0.6 s at `L = 100`, 5.7 s at `L = 200` | no |
-| `psi_quad` (triple term, `Q = 32`) | 0.15 s at `L = 50`, 1.1 s at `L = 100`, 9.3 s at `L = 200` | no |
+| `cov_and_tau` (exact `tau`) | 66 ms at `(L, M) = (50, 5)`, 0.6 s at `(100, 10)`, 5.7 s at `(200, 20)`; the DP part is `O(L^2 M)`, so cost is `M`-sensitive (about 2 s at `(200, 4)`) | no |
+| `psi_quad` (triple term, `Q = 32`) | 0.15 s at `L = 50`, 1.1 s at `L = 100`, 9.3 s at `L = 200`; nearly `M`-independent | no |
 | `exact_map_pmf` (tier 3 convolution) | 0.6 s and 174,220 atoms for three `(14, 3)` profiles | no |
 
 So the two-moment null is effectively free at any `L`, and the third moment - the ingredient that fixes the far tail - is the expensive one, because `tau` re-runs an `O(L*M)` DP once per rank and `psi` builds a `Q x Q` table over an `L x L` grid.
@@ -200,24 +200,25 @@ Ranked next steps, cheapest win first.
 
 **1. Cache the shape triple.** `(mu, sd, skew)` depends only on `(L, M, n)`, so a run testing thousands of groups at one configuration should pay `map_shape` once and reuse it; the p-value itself is then a closed-form Cornish-Fisher evaluation. This is a few lines and removes the cost objection for any fixed-configuration sweep.
 
-**2. Asymptotic skew.** `Var(AP) ~ p(1-p)/L` already lets large-`L` configs skip exact work; the same treatment of `m3` (a leading term in `p` and `L`, with the `tau` and `psi` shares expanded) would make the shape correction free at production `L` instead of impossible. This is the highest-value derivation left, and it is the same kind of exercise as the variance asymptotics that already worked.
+**2. Asymptotic skew.** An asymptotic `m3` would make the shape correction free at production `L` instead of impossible, and it is the highest-value derivation left. Be precise about regimes: `Var(AP) ~ p(1-p)/L` holds at fixed prevalence but fails badly in the fixed-`M` replicate regime these configs live in (`p -> 0`), where the leading order is `c_M / L` instead - at `(L, M) = (103, 3)` the fixed-prevalence formula is 19x off. And only the `mu3` piece expands like the variance did (once `G_L -> 2 zeta(3)` is included); the `tau` (double-Beta sum) and `psi` (quadrature) shares need their own, genuinely harder, asymptotic treatment.
 
-**3. Drop `psi` with a bound.** `map_shape` already reports each term's share of `m3` (`c_mu3`, `c_tau`, `c_psi`). Where the triple term is a small share, omitting it and bounding the induced skew error removes the most expensive piece outright. Check the share across the configurations of interest before assuming it is small.
+**3. Drop `psi` with a bound.** `map_shape` already reports each term's share of `m3` (`c_mu3`, `c_tau`, `c_psi`). Where the triple term is a small share, omitting it and bounding the induced skew error removes the most expensive piece outright. The check is load-bearing, not a formality: `psi` carries the `n(n-1)(n-2)` coefficient, so its share grows with `n` (measured at `(25, 5)`: 0.2% of `m3` at `n = 3`, 8.6% at `n = 20`, dominant at large `n`) - the drop is safe only at small `n`.
 
-**4. Closed-form conditional second moment.** `tau` costs `O(L^2 M)` only because `dp_cond_moments` is called per forced rank; the conditional *mean* already has an `O(L)` closed form (`ew_cond_closed`). Deriving the conditional second moment in closed form the same way would cut `tau` by a factor of `M*L`.
+**4. Closed-form conditional second moment.** The conditional *mean* already has an `O(L)` closed form (`ew_cond_closed`); the conditional second moment is an `O(L*M)` DP called once per forced rank. Deriving it in closed form the same way cuts the DP part by a factor of `M`, taking `tau` from `O(L^2 M)` to `O(L^2)` - the floor set by the `L x L` Beta-kernel double sum, which the closed form leaves untouched. Worthwhile at large `M`, marginal at small `M`.
 
-**5. Saddlepoint tail instead of a moment expansion.** The most promising direction, and the one that sidesteps the PMF explosion entirely: the cumulant generating function of `W` is computable by the same rank DP with `exp(t*c/r)` weights in `O(L*M)` floats, with no atom grid and no bignums, so a Lugannani-Rice tail costs milliseconds at any `L`. A probe on three `(14, 3)` profiles (independent null, where the exact law is available) gave one tail evaluation in 19 ms against 585 ms to build the 174,220-atom exact PMF, and far better deep-tail accuracy than any three-moment expansion:
+**5. Saddlepoint tail instead of a moment expansion.** The most promising direction, and the one that sidesteps the PMF explosion entirely: the cumulant generating function of `W` is computable by the same rank DP with `exp(t*c/r)` weights in `O(L*M)` floats, with no atom grid and no bignums, so a Lugannani-Rice tail costs milliseconds at any `L`. `saddle_probe.py` (committed, self-checking) compares it against the exact independent-null law for three `(14, 3)` profiles: one tail evaluation in about 20 ms against about 660 ms to build the 174,220-atom exact PMF, and
 
 | threshold | exact | saddlepoint | Cornish-Fisher | Normal |
 | --- | --- | --- | --- | --- |
-| `mu + 2.0 sd` | 0.03834 | 0.04556 | 0.03893 | 0.02275 |
-| `mu + 3.0 sd` | 0.00609 | 0.00659 | 0.00729 | 0.00135 |
-| `mu + 3.5 sd` | 0.00208 | 0.00207 | 0.00291 | 0.00023 |
+| `mu + 2.0 sd` | 0.03834 | 0.03850 (+0.4%) | 0.03893 (+1.5%) | 0.02275 (-41%) |
+| `mu + 3.0 sd` | 0.00609 | 0.00612 (+0.4%) | 0.00729 (+20%) | 0.00135 (-78%) |
+| `mu + 3.5 sd` | 0.00208 | 0.00208 (-0.3%) | 0.00291 (+40%) | 0.00023 (-89%) |
+| `mu + 4.5 sd` | 0.00017 | 0.00016 (-0.9%) | 0.00040 (+143%) | 0.00000 (-98%) |
 
-At 3.5 sd the saddlepoint is within 0.5 percent while Cornish-Fisher is 40 percent high and the Normal is off by a factor of 9 - exactly the regime where the current correction is weakest.
-The wrinkle, stated because it needs fixing before use: the same probe ran about 20 percent high at 1.5 to 2.5 sd.
-That is the signature of applying the continuous Lugannani-Rice formula to a lattice variable (AP lives on a rational grid), so the lattice-corrected version is the thing to try, and the finite-difference derivatives in the probe should be replaced by DP-computed cumulants.
-Extending it past the independent null means saddlepointing conditional on the shared quantiles and integrating, which is more work than the moment route but is the only path here that stays accurate arbitrarily deep in the tail.
+The saddlepoint is within 1 percent at every threshold from 1.5 to 4.5 sd, precisely the regime where the three-moment expansion falls apart.
+Provenance note, kept because the review that produced it is instructive: the first version of this probe had the sign of the Lugannani-Rice correction term flipped, giving a bias of up to 20 percent that was initially misdiagnosed as a lattice effect - the mAP lattice spacing here is about `3e-6` sd, five orders of magnitude too small to matter, and an adversarial review caught both the sign error and the bad diagnosis.
+Caveats that remain: accuracy is demonstrated on the independent null only (the shared-positive extension means saddlepointing conditional on the shared quantiles and integrating); on very coarse laws the granularity of the discrete tail itself becomes the limit (three `(10, 2)` profiles: within 6 percent to 3.5 sd, 13 percent at 4.0 sd, where single atoms carry percent-level tail mass); and the probe's finite-difference derivatives should become DP-computed cumulants as hygiene.
+Within those bounds, this is the only path here whose relative error stays small far into the tail.
 
 ## Limitations
 
@@ -254,6 +255,7 @@ uv run ap_moments.py
 uv run --with numpy calibration_check.py
 uv run --with numpy map_shape.py
 uv run --with numpy shape_calibration_check.py
+uv run --with numpy saddle_probe.py
 ```
 
 `lake build` completes with no warnings; the repository is `sorry`-free.
