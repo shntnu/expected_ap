@@ -12,7 +12,7 @@ This repository contains a mathematical analysis of Expected Average Precision (
 - Build the Lean project: `cd lean && lake build`
 - If `lake` is not on PATH (elan shims missing), use the toolchain directly: `cd lean && ~/.elan/toolchains/leanprover--lean4---v4.23.0-rc2/bin/lake build`
 - Check `lean/lean-toolchain` for the expected Lean version
-- **Note**: The Lean proof is complete — all theorems compile with zero `sorry` placeholders
+- **Note**: All Lean theorems compile with zero `sorry` placeholders except one declared exception: `varianceAP_closed_form` in `lean/ap_moments.lean` (the general variance closed form), isolated in `section Unproved` and disclosed in `AP_MOMENTS.md`. `lake build` emits exactly that one warning.
 - Lean LSP MCP tools (`lean_goal`, `lean_diagnostic_messages`, etc.) are available for interactive proof development
 
 ### Python Development
@@ -39,6 +39,10 @@ This repository contains a mathematical analysis of Expected Average Precision (
 3. **lean/expected_ap_gpt_54.lean**: Alternative proof path developed by GPT-5.4 via Codex, providing the downstream algebraic proofs and the `hM` guard fix
 
 4. **ap_distribution.md**: Mathematical exposition of the theoretical results
+
+5. **lean/ap_distribution.lean**: Formal proof of the exact AP PMF (uniform pushforward onto rank subsets); `ap_distribution.py` is the matching exact PMF/CDF explorer
+
+6. **ap_moments.py**: Exact Var(AP), shared-positive Cov(AP_i, AP_j), design effect, and mAP null utilities; tested by `test_ap_moments.py`, stress-tested by `calibration_check.py`, formal side in `lean/ap_moments.lean`, status table in `AP_MOMENTS.md`
 
 ## Key Mathematical Concepts
 

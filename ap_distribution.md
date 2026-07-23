@@ -461,7 +461,8 @@ $$
 
 The recurrence in Section 3.5 computes one exact tail without first constructing the whole PMF.
 Its worst-case work remains combinatorial, as the $M=2$ divisor-style reduction already indicates.
-The remaining problems are to simplify the variance into a compact analytic expression comparable to Theorem 1, and to compute tail probabilities scalably without hiding the same count in coefficient extraction or nested floor sums.
+The variance now has a compact analytic expression comparable to Theorem 1, recorded with its verification status in `AP_MOMENTS.md` and implemented in `ap_moments.py`; its general Lean proof remains open.
+The remaining problem is to compute tail probabilities scalably without hiding the same count in coefficient extraction or nested floor sums.
 
 ## 6. Implementation Notes
 
@@ -473,7 +474,7 @@ The remaining problems are to simplify the variance into a compact analytic expr
 
 ### 6.2 Code Availability
 
-Python implementations of both methods are available at: [repository URL]
+Python implementations accompany this paper in the same repository: `expected_ap.py` (expectation methods), `ap_distribution.py` (exact PMF and CDF explorer), and `ap_moments.py` (variance, covariance, and mAP null).
 
 ## 7. Related Work
 
@@ -490,11 +491,11 @@ The harmonic expectation reveals the bias in the prevalence approximation, while
 
 ### Future Directions
 
-The first and third items concern analytic simplicity and computational scale, not the existence of exact finite answers.
+The compact second-moment and variance formula, formerly listed here, is delivered in `AP_MOMENTS.md` (exhaustively verified; the general Lean proof is pending).
+The second item below concerns computational scale, not the existence of exact finite answers.
 
-1. Derive a compact analytic formula for the second moment and variance
-2. Extend the analysis to graded-relevance metrics such as NDCG and ERR
-3. Develop scalable exact algorithms or controlled approximations for tail probabilities at large $L$ and $M$
+1. Extend the analysis to graded-relevance metrics such as NDCG and ERR
+2. Develop scalable exact algorithms or controlled approximations for tail probabilities at large $L$ and $M$
 
 ## References
 

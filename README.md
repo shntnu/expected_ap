@@ -30,6 +30,9 @@ uvx marimo edit --sandbox expected_ap.py
 - **`ap_distribution.py`** - Interactive exact PMF and CDF explorer
 - **`lean/expected_ap.lean`** - Formal proof of the expected value
 - **`lean/ap_distribution.lean`** - Formal proof of the exact AP probability mass function
+- **`ap_moments.py`** - Exact Var(AP), shared-positive covariance, design effect, and mAP null (tests in `test_ap_moments.py`, calibration study in `calibration_check.py`)
+- **`AP_MOMENTS.md`** - Moments results with a per-claim PROVEN / VERIFIED / ASSUMED status table
+- **`lean/ap_moments.lean`** - Formal statements and proofs for the moments layer (one declared `sorry`; see `AP_MOMENTS.md`)
 
 ## Key Result
 
@@ -48,11 +51,13 @@ Exact tails can be computed recursively by conditioning on the final relevant ra
 For thresholds sufficiently close to either endpoint, the tail also has a one-line exact formula involving only a floor or ceiling and a binomial coefficient.
 No general harmonic simplification is known: already for two relevant items, the tail reduces to a shifted divisor-summatory floor sum.
 
+The variance also has a compact harmonic closed form, and APs within a mAP group are positively correlated through shared positives (design effect approaching 1.84 in replicate retrieval); see [`AP_MOMENTS.md`](AP_MOMENTS.md).
+
 ## Lean Formal Proof
 
-The `lean/` directory contains complete Lean 4 + Mathlib formalizations of the expectation (`expected_ap_closed_form`) and every atom of the distribution (`uniformAPMass_closed_form_explicit`), verified by `lake build` with no `sorry` placeholders.
+The `lean/` directory contains complete Lean 4 + Mathlib formalizations of the expectation (`expected_ap_closed_form`) and every atom of the distribution (`uniformAPMass_closed_form_explicit`), verified by `lake build`. The one `sorry` in the repository is the declared general variance closed form (`varianceAP_closed_form` in `lean/ap_moments.lean`), isolated in its own section and disclosed in `AP_MOMENTS.md`.
 
-The proof was developed collaboratively by Claude Opus 4.6 and GPT-5.4 (via Codex). The permutation counting infrastructure and harmonic identities were built by Claude; the downstream algebraic proofs and the identification of a necessary `M ≥ 1` guard on the theorem statement were contributed by GPT-o3 in `lean/expected_ap_gpt_54.lean`.
+The proof was developed collaboratively by Claude Opus 4.6 and GPT-5.4 (via Codex). The permutation counting infrastructure and harmonic identities were built by Claude; the downstream algebraic proofs and the identification of a necessary `M ≥ 1` guard on the theorem statement were contributed by GPT-5.4 in `lean/expected_ap_gpt_54.lean`.
 
 ## Generate PDFs
 
