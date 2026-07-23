@@ -22,7 +22,8 @@ Average Precision (AP) is a fundamental metric in information retrieval, machine
 2. Establishing baseline performance expectations
 3. Detecting non-random patterns in ranked outputs
 
-While it is commonly assumed that the expected AP under random ranking equals the prevalence (proportion of relevant items), Bestgen (2015) demonstrated that this is only an approximation. For finite samples—particularly common in specialized domains with limited labeled data—the exact expected value differs substantially from prevalence.
+While it is commonly assumed that the expected AP under random ranking equals the prevalence (proportion of relevant items), Zhang and Su (2012) derived exact finite-sample moments and Bestgen (2015) later focused specifically on the random-baseline expectation.
+For finite samples—particularly common in specialized domains with limited labeled data—the exact expected value differs substantially from prevalence.
 
 ### 1.1 Contributions
 
@@ -31,7 +32,7 @@ This paper provides a comprehensive treatment of expected AP under random rankin
 1. **Closed-form Derivation:** We present a complete proof of the exact formula using exchangeability arguments (Theorem 1)
 2. **Unified Presentation:** We provide an alternative derivation using harmonic numbers and connect it with Bestgen's (2015) hypergeometric algorithm, showing their equivalence
 3. **Asymptotic Analysis:** We characterize the precise $O(\log L/L)$ convergence rate with explicit constants
-4. **Full Distribution:** We give the exact finite PMF, including the multiplicities caused by AP collisions
+4. **Full Distribution and Tails:** We give the exact finite PMF, including the multiplicities caused by AP collisions, and an exact recursive tail formula
 5. **Practical Implications:** We quantify the impact on statistical testing and provide implementation guidance
 
 ## 2. Problem Formulation
@@ -173,11 +174,180 @@ For $M=0$, the repository's convention gives the point mass $A=0$.
 For $M=L$, the law is the point mass $A=1$.
 The Lean theorem `uniformAPMass_closed_form_explicit` proves the subset-count formula directly from the original uniform-permutation definition.
 
+### 3.5 Exact Tail Reduction
+
+Let
+
+$$T_{L,M}(t)=\Pr(A_{L,M}\ge t).$$
+
+Condition on the final relevant rank $R_M=k$.
+Its distribution is
+
+$$
+\Pr(R_M=k)=\frac{\binom{k-1}{M-1}}{\binom{L}{M}},
+$$
+
+and the preceding $M-1$ ranks form a uniform $(M-1)$-subset of $\{1,\ldots,k-1\}$.
+Moreover,
+
+$$
+A_{L,M}=\frac{M-1}{M}A_{k-1,M-1}+\frac1k.
+$$
+
+**Theorem 4 (Exact AP Tail Recurrence).** *For $M>1$,*
+
+$$
+T_{L,M}(t)
+=\frac1{\binom{L}{M}}
+\sum_{k=M}^{L}\binom{k-1}{M-1}
+T_{k-1,M-1}\left(\frac{M}{M-1}\left(t-\frac1k\right)\right).
+$$
+
+*Proof.* Condition on $R_M=k$ using the preceding two identities and sum over $k=M,\ldots,L$. $\square$
+
+The base case is elementary:
+
+$$
+T_{L,1}(t)=
+\begin{cases}
+1, & t\le0,\\
+\min(L,\lfloor1/t\rfloor)/L, & 0<t\le1,\\
+0, & t>1.
+\end{cases}
+$$
+
+The other nearly deterministic edge has a harmonic description.
+When $L\ge2$ and $M=L-1$, let $K$ be the rank of the sole nonrelevant item.
+Then $K$ is uniform on $\{1,\ldots,L\}$ and
+
+$$
+A_K=1-\frac{H_L-H_K}{L-1}.
+$$
+
+Consequently,
+
+$$
+T_{L,L-1}(t)
+=\frac1L\#\left\{K:H_K\ge H_L-(L-1)(1-t)\right\}.
+$$
+
+This uses harmonic numbers, but evaluating it still requires finding the first harmonic number above the threshold.
+
+There is also an elementary exact formula for the extreme upper tail.
+Let $N=L-M$, assume $M\ge2$, and define
+
+$$
+b_{L,M}=1-\frac{2M+1}{M^2(M+1)}.
+$$
+
+For every threshold $b_{L,M}<t\le1$,
+
+$$
+T_{L,M}(t)
+=
+\frac{
+1+\min\left(
+N,
+\left\lfloor
+\frac{M^2(1-t)}{1-M(1-t)}
+\right\rfloor
+\right)
+}{\binom LM}.
+$$
+
+To see this, write each relevant rank as $R_j=j+d_j$, where
+
+$$
+0\le d_1\le\cdots\le d_M\le N.
+$$
+
+The loss from perfect AP is
+
+$$
+1-A=\frac1M\sum_{j=1}^M\frac{d_j}{j+d_j}.
+$$
+
+If any of the first $M-1$ displacements is positive, the smallest possible loss occurs at $(d_1,\ldots,d_M)=(0,\ldots,0,1,1)$ and equals $(2M+1)/(M^2(M+1))$.
+Above $b_{L,M}$, every qualifying rank set therefore has the form $(0,\ldots,0,d)$.
+For that set, $A=1-d/(M(M+d))$, and solving $A\ge t$ gives
+
+$$
+0\le d\le
+\min\left(
+N,
+\left\lfloor\frac{M^2(1-t)}{1-M(1-t)}\right\rfloor
+\right).
+$$
+
+The lower endpoint of this interval is intentionally strict when $N\ge1$.
+At $t=b_{L,M}$, the displacement pattern $(0,\ldots,0,1,1)$ also enters the tail, so the displayed numerator undercounts by one.
+When $N=0$, AP is identically one and the formula remains valid at the endpoint.
+
+The recurrence above computes an exact tail directly, but unrolling it reproduces the nested rank-set calculation rather than a harmonic-number collapse.
+The obstruction is visible already for $M=2$.
+For a rational threshold $t=p/q>0$ in lowest terms, define, for $1\le r<L$,
+
+$$
+U_r=
+\begin{cases}
+L, & 2pr\le q,\\
+\min\left(L,\left\lfloor\dfrac{2qr}{2pr-q}\right\rfloor\right), & 2pr>q.
+\end{cases}
+$$
+
+Solving the tail inequality for the second rank gives the exact one-dimensional formula
+
+$$
+T_{L,2}(p/q)
+=\frac1{\binom L2}\sum_{r=1}^{L-1}\max(0,U_r-r).
+$$
+
+Equivalently, a rank pair $(r,s)$ belongs to the tail exactly when
+
+$$
+(2pr-q)(ps-q)\le q^2.
+$$
+
+At equality this becomes a divisor equation; for example, every atom can be recovered from factor pairs of $q^2$ subject to the rank and congruence constraints.
+For $t=1/(2n)$, the tail boundary is the shifted hyperbola
+
+$$
+(r-n)(s-2n)\le2n^2.
+$$
+
+Thus even the two-relevant-item tail is a bounded hyperbola lattice-point problem, closely related to divisor summatory floor sums.
+The connection is exact.
+Write $q=mp+c$ with $0\le c<p$ and set $n=2pr-q$ in the nontrivial part of the sum.
+Then
+
+$$
+\left\lfloor\frac{2qr}{2pr-q}\right\rfloor
+=m+\left\lfloor\frac{\lfloor q^2/n\rfloor+c}{p}\right\rfloor.
+$$
+
+When $p=1$ and $q$ is even, $n=2d$ and the varying term is $\lfloor(q^2/2)/d\rfloor$, an interval of the ordinary divisor summatory floor sum.
+The usual reciprocity for linear floor sums does not remove this hyperbolic arithmetic term.
+This explains why the expectation can simplify through linearity while the exact tail retains discrete arithmetic structure.
+
+The support can also be combinatorially large.
+Let $\mathcal P$ contain $K$ primes satisfying $M<p\le L$.
+AP is injective on the $M$-subsets of $\mathcal P$: if two such subsets had equal AP, multiplying by the product of their union and reducing modulo each prime would force that prime to occur with the same positional coefficient on both sides.
+Because every positional coefficient is at most $M<p$, congruence implies equality of the positions and hence equality of the subsets.
+Consequently,
+
+$$
+|\operatorname{supp}(A)|\ge\binom KM.
+$$
+
+For example, the 21 primes in $(10,100]$ imply at least $\binom{21}{10}=352716$ distinct AP values when $L=100$ and $M=10$.
+Any exact tail formula for arbitrary $t$ must encode these breakpoints, whether through cases, floors, recurrence states, or coefficient extraction.
+This rules out a short explicit atom table, but it is not a symbolic formula-size lower bound or a proof of computational hardness.
+
 ## 4. Asymptotic Analysis
 
 ### 4.1 Convergence Rate
 
-**Theorem 4 (Asymptotic Behavior).** *As $L \to \infty$ with prevalence $p$ held fixed:*
+**Theorem 5 (Asymptotic Behavior).** *As $L \to \infty$ with prevalence $p$ held fixed:*
 
 $$\mathbb{E}[\text{AP}] = p + \frac{(1-p)\log L}{L} + O\left(\frac{1}{L}\right)$$
 
@@ -234,8 +404,9 @@ $$
 = \sum_{a \ge a_{\mathrm{obs}}}\Pr(A=a).
 $$
 
-Thus neither quantity is mathematically unknown.
-The remaining problems are to simplify the variance into a compact analytic expression comparable to Theorem 1, and to compute tail probabilities without enumerating up to $\binom{L}{M}$ rank sets.
+The recurrence in Section 3.5 computes one exact tail without first constructing the whole PMF.
+Its worst-case work remains combinatorial, as the $M=2$ divisor-style reduction already indicates.
+The remaining problems are to simplify the variance into a compact analytic expression comparable to Theorem 1, and to compute tail probabilities scalably without hiding the same count in coefficient extraction or nested floor sums.
 
 ## 6. Implementation Notes
 
@@ -252,7 +423,9 @@ Python implementations of both methods are available at: [repository URL]
 ## 7. Related Work
 
 - **Robertson (2008):** Introduced alternative AP formulations but assumed asymptotic behavior
-- **Bestgen (2015):** First formally identified that the common prevalence approximation is incorrect; provided the exact algorithmic approach using hypergeometric distributions
+- **Zhang and Su (2012):** Derived exact hit-rank marginals and pairwise joint laws, used them for exact first and second moments, and proposed a normal approximation
+- **Lopes and Bontempi (2014):** Derived exact AP-style AUPRC moments and proposed a moment-matched beta approximation to the discrete null distribution
+- **Bestgen (2015):** Provided an exact hypergeometric algorithm focused on the random-baseline expectation
 - **Yilmaz et al. (2008):** Studied AP variance but under different assumptions
 
 ## 8. Conclusion
@@ -277,6 +450,10 @@ The first and third items concern analytic simplicity and computational scale, n
 [3] Robertson, S. (2008). A new interpretation of average precision. *Proceedings of SIGIR*, 689-690.
 
 [4] Yilmaz, E., Aslam, J. A., & Robertson, S. (2008). A new rank correlation coefficient for information retrieval. *Proceedings of SIGIR*, 587-594.
+
+[5] Zhang, P., & Su, W. (2012). Statistical inference on recall, precision and average precision under random selection. *Proceedings of FSKD*, 1348-1352.
+
+[6] Lopes, M., & Bontempi, G. (2014). On the null distribution of the precision and recall curve. *ECML PKDD*, 322-337.
 
 ## Appendix A: Proof of Harmonic Identity
 
