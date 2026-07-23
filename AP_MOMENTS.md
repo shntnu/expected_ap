@@ -108,6 +108,9 @@ It is also the reference the moment formulas are checked against.
 | `design_effect`, the correction inside `map_null_sd` | **ASSUMED (inherits tier 2)** | Exact ratio of two tier-2 quantities |
 | `Cov(AP_i, AP_j)` for **mismatched** `(L, M)` pairs | **ASSUMED model, then exact** | `cov_ap_hetero`: the same conditioning argument with per-list coefficients; the two cross terms `Cov(g1,l2)` and `Cov(l1,g2)` no longer merge. Checked against exact rational integration of the model for all `L1, L2 <= 5`, reduces exactly to `cov_ap` on the diagonal for `L <= 12`, and two independent derivations agreed exactly on all 6084 configs with `L1, L2 <= 12`. Replaces the former `sqrt(cov_i * cov_j)` guess in `map_null_sd`. |
 | `exact_map_pmf` / `exact_map_tail` | **VERIFIED, assumes independence** | Matches brute-force enumeration for single profiles; mass sums to exactly 1; its mean and variance match `expected_map` and `sum var_ap / n^2` exactly |
+| `E[AP^3]` closed form (`eap3`) | **VERIFIED numerically** | Two independent derivations (exact ansatz identification, mechanical 6-index pattern expansion) converged on the identical formula; exact against enumeration for all `1 <= M <= L <= 13` and a moment DP to `L = 120`. Needs the Euler-sum generator `G_L = sum_{k<=L} H_k/k^2`; the pure weight-3 harmonic basis is provably insufficient. Not formalised in Lean. |
+| `m3(mAP)` decomposition (`mu3` / `tau` / `psi`) | **EXACT / EXACT / NUMERICAL** | `map_shape.py`: `mu3` exact from `eap3`; `tau` exact double-Beta sum whose by-product reproduces `cov_ap` exactly (tested); `psi` Gauss-Legendre quadrature validated against 2e6-rep simulation of the tier-2 model, not exact rational. Inherits the tier-2 model. |
+| Shape-corrected mAP null (`cf_sf`, `gamma3_null_sample`) | **ASSUMED (tier 2), calibrated** | Matches `(mu, sd, skew)` on top of the design-effect sd. Reaches nominal FPR at both alpha 0.05 and 0.01 on model-matched data, tracking the three-moment oracle; on Gram data nominal at small `n`, 1.5x to 1.75x nominal at alpha 0.01 for large `n` (see the shape section). |
 
 The file carries no `sorry`: the general theorem is proved via a 12-lemma reduction (harmonic bridges, inclusion probabilities, the W-expansion, and the four coincidence-pattern sums) at the end of `lean/ap_moments.lean`.
 The `native_decide` checks are stated as anonymous `example`s, so no named theorem carries `Lean.ofReduceBool`.
@@ -152,23 +155,46 @@ It does **not** reach nominal.
 The oracle row is the ceiling for any variance-only fix, and it misses nominal by almost exactly the same margin, which locates the residual in distribution shape rather than in the variance.
 The diagnostics agree: the true mAP distribution is more right-skewed than the independent-convolution null at every configuration (for example 0.36 against 0.08 at `(50,100)`), and the empirical upper tail is 1.34 to 1.52 times wider than the independent null while a pure variance rescale can only deliver the sd ratio of 1.29 to 1.38.
 
+## The shape correction: the third moment closes the tail
+
+The variance-only ceiling above located the alpha 0.01 residual in distribution shape.
+`eap3` in `ap_moments.py` supplies the exact marginal third moment, and `map_shape.py` assembles the third central moment of mAP under the tier-2 model by index-coincidence pattern (an exact identity):
+
+    m3(mAP) = (1/n^3) [ n*mu3 + 3n(n-1)*tau + n(n-1)(n-2)*psi ]
+
+`mu3` and `tau` are exact rational - `tau` comes from the same conditioning as `cov_ap`, collapsed to a double-Beta sum whose by-product reproduces `cov_ap` exactly, which the tests check - while `psi`, the triple term, is a Gauss-Legendre quadrature validated against simulation: the one non-exact ingredient.
+Two moment-matched nulls sit on top of the design-effect sd: Cornish-Fisher (`cf_sf`, primary) and a shifted gamma (`gamma3_null_sample`, a robustness check that the result does not hinge on the CF expansion); the two agree closely everywhere tested.
+
+Calibration (`shape_calibration_check.py`; 100,000 true-null observations per config, all nine configurations, binomial se at alpha 0.01 about 3e-4):
+
+| generator | method | FPR at nominal 0.05 | FPR at nominal 0.01 |
+| --- | --- | --- | --- |
+| model-matched (tier 2) | variance-only | 0.050 to 0.060 | 0.0097 to 0.0131 |
+| model-matched (tier 2) | shape (CF) | 0.047 to 0.051 | 0.0072 to 0.0100 |
+| model-matched (tier 2) | oracle shape | 0.050 to 0.061 | 0.0086 to 0.0100 |
+| gram (realistic cosine) | variance-only | 0.053 to 0.061 | 0.0124 to 0.0179 |
+| gram (realistic cosine) | shape (CF) | 0.047 to 0.061 | 0.0075 to 0.0175 |
+| gram (realistic cosine) | oracle shape | 0.050 to 0.053 | 0.0090 to 0.0104 |
+
+On data the tier-2 model describes exactly, matching three moments reaches nominal at both levels and tracks the three-moment oracle: the residual the variance correction left really was the third moment, and it is now closed on the model's own terms.
+On realistic Gram data the shape correction beats variance-only and reaches nominal for small `n` (at `n = 3`, alpha 0.01: 0.0093 against 0.0146), but stays at 1.5x to 1.75x nominal for large `n`: the tier-2 model under-predicts the Gram null's skew, by up to about 4x at `n = 50`, because the shared feature matrix couples profiles beyond the single shared pair.
+The measured-moments oracle does reach nominal on Gram data too, so three moments suffice there as well - the remaining gap is the model, not the method.
+
 ## Limitations
 
-The general variance formula is not proved in Lean.
-It is verified by exhaustive enumeration up to `L = 12` and by `native_decide` inside Lean up to `L = 10`, which is strong evidence and not a proof.
-What is missing is the `E[W^2]` identity: the four-way case split on which of the four indices coincide, plus double-sum harmonic identities such as `sum_{k<=L} H_k/k = (H_L^2 + H2_L)/2`.
-The transfer machinery and the statement are already in place.
+The mean and the general variance formula are proved in Lean; the third moment `eap3` is not.
+It is verified by two independently derived routes agreeing exactly, by exhaustive enumeration up to `L = 13`, and by a moment DP out to `L = 120` - strong evidence, not a proof.
+A Lean formalisation would need the Euler-sum generator `G_L` alongside the harmonic ones.
 
 The covariance rests on a modelling assumption and cannot be checked against the ranking law alone, because the ranking law says nothing about two lists.
 It is exact given the model, and the model is a simplification: in real Cell Painting style retrieval all profiles are built from the same feature matrix, which couples them beyond the single shared pair.
 Empirically that extra coupling adds a few percent to the design effect, in the conservative direction (the correction under-inflates rather than over-inflates).
 
-The correction is variance-only.
-It does not fix skewness, so p-values in the far tail stay anti-conservative even after correction.
-Anyone who needs calibrated inference at alpha 0.01 should permute rather than rely on these formulas.
+The shape correction closes the tail on the model's own terms, but on realistic Gram-coupled data the model under-predicts skew at large `n`, so far-tail p-values there remain anti-conservative (1.5x to 1.75x at alpha 0.01 for `n >= 20`).
+Anyone who needs calibrated inference deep in the tail on real data at large `n` should still permute; at small `n` the shape-corrected null was calibrated in these experiments.
 
 `map_null_sd` on heterogeneous configs uses the exact heterogeneous covariance `cov_ap_hetero` for off-diagonal pairs (the former geometric-mean interpolation is gone).
-Homogeneous configs are exact under the model; mixed ones are a guess.
+Homogeneous and mixed configs are both exact under the model.
 
 Everything assumes binary relevance and a uniformly random ranking under the null.
 Graded relevance and ties are out of scope.
@@ -187,6 +213,8 @@ uvx ruff check . && uvx ruff format --check .
 cd lean && lake build
 uv run ap_moments.py
 uv run --with numpy calibration_check.py
+uv run --with numpy map_shape.py
+uv run --with numpy shape_calibration_check.py
 ```
 
 `lake build` completes with no warnings; the repository is `sorry`-free.

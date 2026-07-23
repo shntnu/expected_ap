@@ -118,6 +118,37 @@ def test_cov_ap_matches_exact_quantile_integration():
             assert mean == expected_ap(L, M), (L, M)  # the mixing is the right one
 
 
+def test_map_shape_tau_machinery_reproduces_cov():
+    from map_shape import cov_and_tau
+
+    for L in range(2, 9):
+        for M in range(1, L + 1):
+            cov, _tau = cov_and_tau(L, M)
+            assert cov == cov_ap(L, M), (L, M)
+
+
+def test_map_shape_conditional_moments_consistent():
+    from map_shape import dp_cond_moments, ew_cond_closed
+
+    for L in range(3, 8):
+        for M in range(1, L + 1):
+            for u in range(1, L + 1):
+                ew, _ = dp_cond_moments(L, M, (u,))
+                assert ew == ew_cond_closed(L, M, (u,)), (L, M, u)
+                if M >= 2:
+                    for w in range(u + 1, L + 1):
+                        ew2, _ = dp_cond_moments(L, M, (u, w))
+                        assert ew2 == ew_cond_closed(L, M, (u, w)), (L, M, u, w)
+
+
+def test_map_shape_assembly_smoke():
+    from map_shape import map_shape
+
+    r = map_shape(12, 2, 4, Q=32)
+    assert r["var"] > 0 and r["skew"] > 0
+    assert abs(r["var"] - (4 * r["mu2"] + 12 * r["cov"]) / 16) < 1e-15
+
+
 def test_eap3_matches_enumeration():
     for L in range(1, 13):
         for M in range(1, L + 1):
