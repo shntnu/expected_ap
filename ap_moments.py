@@ -28,7 +28,8 @@ item is shared - it is the pair (i, j) itself, carrying literally the same simil
 value in both lists - and every other value in both lists is an independent draw from
 the same continuous distribution.  That is the standard replicate-retrieval setup, but
 it is an assumption about the data, not a theorem.  Given the model, the covariance is
-exact.  `design_effect` and the correction inside `map_null_sd` inherit that caveat.
+exact, including for lists of unequal shape (`cov_ap_hetero`).  `design_effect` and
+the correction inside `map_null_sd` inherit that caveat.
 
 Tier 3, the exact null PMF of mAP.  `exact_map_pmf` convolves the per-profile laws
 under the assumption that the profiles are INDEPENDENT, which tier 2 says they are
@@ -47,6 +48,7 @@ from math import comb, gcd, lcm, prod, sqrt
 
 __all__ = [
     "cov_ap",
+    "cov_ap_hetero",
     "design_effect",
     "exact_map_pmf",
     "exact_map_tail",
@@ -210,6 +212,82 @@ def cov_ap(L: int, M: int, exact: bool = True):
     return (A * A * var_g - 2 * A * c * cov_gl + c * c * var_l) / (M * M)
 
 
+def cov_ap_hetero(L1: int, M1: int, L2: int, M2: int, exact: bool = True):
+    """Exact Cov(AP_1, AP_2) for lists (L1, M1) and (L2, M2) sharing one positive.
+
+    The tier-2 model of `cov_ap` without the matching-shape restriction: list r ranks
+    L_r items with M_r relevant, the single shared positive carries the same similarity
+    value in both lists, everything else is independent.  The conditioning argument goes
+    through unchanged - given the shared quantile p the lists are independent, so
+    Cov = Cov_p(f_1(p), f_2(p)) with each f_r built from its own (L_r, M_r) - except
+    that the two cross terms no longer coincide:
+
+        Cov = [ A1*A2*Cov(g1,g2) - A1*c2*Cov(g1,l2) - c1*A2*Cov(l1,g2)
+                + c1*c2*Cov(l1,l2) ] / (M1*M2)
+
+    with A_r, c_r as in `cov_ap` and each raw cross-moment a single harmonic sum, so
+    O(L1 + L2) work.  Symmetric in the two lists; on the diagonal the two cross terms
+    merge and this reduces exactly to `cov_ap(L, M)`.
+
+    Verified: exact match with direct rational integration of the model (all
+    L1, L2 <= 5 in the test suite); exact diagonal reduction to `cov_ap` for
+    2 <= L <= 12; two independently derived implementations agreed exactly on all
+    6084 configs with L1, L2 <= 12; Monte Carlo consistent on heterogeneous configs.
+
+    Returns an exact Fraction (exact=True) or a float (exact=False).  Requires
+    1 <= M_r <= L_r.  Returns exactly 0 when either list is deterministic
+    (M_r == L_r, which includes L_r == 1).
+    """
+    if not (1 <= M1 <= L1 and 1 <= M2 <= L2):
+        raise ValueError(
+            f"require 1 <= M <= L per list, got (L1,M1)=({L1},{M1}), (L2,M2)=({L2},{M2})"
+        )
+    if M1 == L1 or M2 == L2:
+        return Fraction(0) if exact else 0.0
+
+    if exact:
+        R = Fraction
+        H = [Fraction(0)]
+        for k in range(1, L1 + L2):
+            H.append(H[-1] + Fraction(1, k))
+    else:
+
+        def R(a, b=1):
+            return a / b
+
+        H = [0.0]
+        for k in range(1, L1 + L2):
+            H.append(H[-1] + 1.0 / k)
+
+    def params(L, M):
+        # (A, c) exactly as in cov_ap; safe because 1 <= M < L here, so L >= 2
+        q = R(M - 1, L - 1)
+        q2 = R(0) if (M < 3 or L < 3) else R((M - 1) * (M - 2), (L - 1) * (L - 2))
+        b = 1 - 2 * q + q2
+        c = q2 - q
+        return (b + c) / L, c
+
+    A1, c1 = params(L1, M1)
+    A2, c2 = params(L2, M2)
+
+    e_g1, e_g2 = H[L1] - 1, H[L2] - 1
+    e_l1, e_l2 = R(L1 - 1, L1), R(L2 - 1, L2)
+
+    cov_gg = sum(H[k + L2] - H[k + 1] for k in range(1, L1)) - e_g1 * e_g2
+    cov_gl = sum(R(1, m) * (H[m + L1] - H[m + 1]) for m in range(1, L2)) - e_g1 * e_l2
+    cov_lg = sum(R(1, k) * (H[k + L2] - H[k + 1]) for k in range(1, L1)) - e_l1 * e_g2
+    cov_ll = (
+        sum(
+            R(1, k * (k + 1)) * (H[L2 - 1] + H[k + 1] - H[L2 + k]) for k in range(1, L1)
+        )
+        - e_l1 * e_l2
+    )
+
+    return (
+        A1 * A2 * cov_gg - A1 * c2 * cov_gl - c1 * A2 * cov_lg + c1 * c2 * cov_ll
+    ) / (M1 * M2)
+
+
 def design_effect(L: int, M: int, n: int) -> float:
     """Var(mAP) inflation from sharing positives: 1 + (n-1) * Cov(AP_i,AP_j) / Var(AP).
 
@@ -260,10 +338,9 @@ def map_null_sd(configs: Sequence[Config], shared_positive: bool = True) -> floa
     null that `exact_map_pmf` realises exactly - use it only when the profiles really do
     not share relevant items, otherwise it understates the spread by roughly the
     `design_effect` factor.  With shared_positive=True (default) each pair contributes
-    `cov_ap`; for a pair of profiles with matching (L, M) that is the exact tier-2
-    covariance, and for mismatched pairs it is the geometric mean sqrt(cov_i * cov_j),
-    which is an interpolation, NOT a verified result.  Keep the configs homogeneous if
-    you want the number to be defensible.
+    the exact tier-2 covariance: `cov_ap` for a pair with matching (L, M), and its
+    heterogeneous generalisation `cov_ap_hetero` for mismatched pairs, so heterogeneous
+    configs are exactly as defensible as homogeneous ones (given the tier-2 model).
     """
     configs = [(int(L), int(M)) for L, M in configs]
     n = len(configs)
@@ -272,12 +349,19 @@ def map_null_sd(configs: Sequence[Config], shared_positive: bool = True) -> floa
 
     total = sum(float(var_ap(L, M)) for L, M in configs)
     if shared_positive and n > 1:
-        cov = {c: cov_ap(*c, exact=False) for c in set(configs)}
+        pair_cov: dict[tuple[Config, Config], float] = {}
         for i, ci in enumerate(configs):
             for cj in configs[i + 1 :]:
+                key = (ci, cj) if ci <= cj else (cj, ci)
+                if key not in pair_cov:
+                    a, b = key
+                    pair_cov[key] = (
+                        cov_ap(*a, exact=False)
+                        if a == b
+                        else cov_ap_hetero(*a, *b, exact=False)
+                    )
                 # clamp: the float path can land a hair below 0 in the degenerate M == L
-                a, b = max(cov[ci], 0.0), max(cov[cj], 0.0)
-                total += 2.0 * (a if ci == cj else sqrt(a * b))
+                total += 2.0 * max(pair_cov[key], 0.0)
     return sqrt(max(total, 0.0)) / n
 
 

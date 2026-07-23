@@ -106,7 +106,7 @@ It is also the reference the moment formulas are checked against.
 | **General `Var(AP)` closed form** | **NOT PROVEN. VERIFIED numerically** | `varianceAP_closed_form` in `lean/ap_moments.lean` is the file's single `sorry`. Verified by exhaustive enumeration of every rank subset for all `1 <= M <= L <= 12` (`test_ap_moments.py`), and inside Lean by `native_decide` on exact rationals for twelve `(L, M)` up to `L = 10`. |
 | `Cov(AP_i, AP_j)` for a shared positive | **ASSUMED model, then exact** | Nothing in Lean covers it. Given the model it is exact, checked against exact rational integration over the shared quantile for all `1 <= M <= L` with `2 <= L <= 7`, and against direct simulation of the model. |
 | `design_effect`, the correction inside `map_null_sd` | **ASSUMED (inherits tier 2)** | Exact ratio of two tier-2 quantities |
-| `map_null_sd` for **mismatched** `(L, M)` pairs | **UNVERIFIED interpolation** | Off-diagonal pairs use `sqrt(cov_i * cov_j)`, a guess with no derivation behind it. Keep configs homogeneous. |
+| `Cov(AP_i, AP_j)` for **mismatched** `(L, M)` pairs | **ASSUMED model, then exact** | `cov_ap_hetero`: the same conditioning argument with per-list coefficients; the two cross terms `Cov(g1,l2)` and `Cov(l1,g2)` no longer merge. Checked against exact rational integration of the model for all `L1, L2 <= 5`, reduces exactly to `cov_ap` on the diagonal for `L <= 12`, and two independent derivations agreed exactly on all 6084 configs with `L1, L2 <= 12`. Replaces the former `sqrt(cov_i * cov_j)` guess in `map_null_sd`. |
 | `exact_map_pmf` / `exact_map_tail` | **VERIFIED, assumes independence** | Matches brute-force enumeration for single profiles; mass sums to exactly 1; its mean and variance match `expected_map` and `sum var_ap / n^2` exactly |
 
 The `sorry` is isolated in `section Unproved` at the end of `lean/ap_moments.lean`, and `lake build` reports it as its only warning.
@@ -168,7 +168,7 @@ The correction is variance-only.
 It does not fix skewness, so p-values in the far tail stay anti-conservative even after correction.
 Anyone who needs calibrated inference at alpha 0.01 should permute rather than rely on these formulas.
 
-`map_null_sd` on heterogeneous configs uses a geometric-mean interpolation for off-diagonal covariances that has no derivation behind it.
+`map_null_sd` on heterogeneous configs uses the exact heterogeneous covariance `cov_ap_hetero` for off-diagonal pairs (the former geometric-mean interpolation is gone).
 Homogeneous configs are exact under the model; mixed ones are a guess.
 
 Everything assumes binary relevance and a uniformly random ranking under the null.

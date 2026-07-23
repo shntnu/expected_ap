@@ -19,6 +19,7 @@ import pytest
 
 from ap_moments import (
     cov_ap,
+    cov_ap_hetero,
     design_effect,
     exact_map_pmf,
     exact_map_tail,
@@ -114,6 +115,61 @@ def test_cov_ap_matches_exact_quantile_integration():
             covariance, mean = cov_by_integration(L, M)
             assert covariance == cov_ap(L, M), (L, M)
             assert mean == expected_ap(L, M), (L, M)  # the mixing is the right one
+
+
+def _conditional_mean_poly(L: int, M: int) -> list[Fraction]:
+    """E[AP | p] as a degree-(L-1) polynomial in the shared quantile p, exact."""
+    g = [Fraction(0)] * L
+    for u in range(1, L + 1):
+        weight = conditional_mean_ap(L, M, u) * comb(L - 1, u - 1)
+        for t in range(u):  # (1-p)^(u-1) = sum_t C(u-1, t) (-1)^t p^t
+            g[L - u + t] += weight * comb(u - 1, t) * (-1) ** t
+    return g
+
+
+def cov_hetero_by_integration(L1: int, M1: int, L2: int, M2: int) -> Fraction:
+    """Heterogeneous Cov from the model directly: Cov_p(E[AP_1|p], E[AP_2|p]), exact."""
+    g1, g2 = _conditional_mean_poly(L1, M1), _conditional_mean_poly(L2, M2)
+    product = [Fraction(0)] * (len(g1) + len(g2) - 1)
+    for i, x in enumerate(g1):
+        for j, y in enumerate(g2):
+            product[i + j] += x * y
+
+    def integrate(poly):
+        return sum((c / (k + 1) for k, c in enumerate(poly)), Fraction(0))
+
+    return integrate(product) - integrate(g1) * integrate(g2)
+
+
+def test_cov_ap_hetero_matches_exact_quantile_integration():
+    for L1 in range(2, 6):
+        for L2 in range(2, 6):
+            for M1 in range(1, L1 + 1):
+                for M2 in range(1, L2 + 1):
+                    exact = cov_hetero_by_integration(L1, M1, L2, M2)
+                    assert cov_ap_hetero(L1, M1, L2, M2) == exact, (L1, M1, L2, M2)
+
+
+def test_cov_ap_hetero_reduction_symmetry_and_float_path():
+    for L in range(2, 13):
+        for M in range(1, L + 1):
+            assert cov_ap_hetero(L, M, L, M) == cov_ap(L, M), (L, M)
+    for L1, M1, L2, M2 in [(5, 2, 9, 3), (4, 1, 11, 5), (20, 4, 50, 2)]:
+        exact = cov_ap_hetero(L1, M1, L2, M2)
+        assert exact == cov_ap_hetero(L2, M2, L1, M1)
+        assert exact > 0
+        assert abs(cov_ap_hetero(L1, M1, L2, M2, exact=False) - float(exact)) < 1e-14
+    assert cov_ap_hetero(7, 7, 9, 3) == 0  # deterministic list has zero covariance
+    assert cov_ap_hetero(9, 3, 1, 1) == 0
+
+
+def test_map_null_sd_heterogeneous_uses_exact_covariance():
+    configs = [(10, 2), (14, 3), (10, 2)]
+    n = len(configs)
+    total = sum(float(var_ap(L, M)) for L, M in configs)
+    total += 2.0 * cov_ap(10, 2, exact=False)  # the matching pair
+    total += 2.0 * 2.0 * cov_ap_hetero(10, 2, 14, 3, exact=False)  # two mixed pairs
+    assert abs(map_null_sd(configs) - sqrt(total) / n) < 1e-15
 
 
 def test_cov_ap_edge_cases_and_float_path():
