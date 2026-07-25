@@ -22,6 +22,12 @@ uvx marimo run --sandbox ap_distribution.py
 uvx marimo edit --sandbox expected_ap.py
 ```
 
+## Agent skill setup
+
+The project-local `marimo-notebook` skill is recorded in `skills-lock.json` and installed into gitignored directories.
+After cloning, run `npx skills@1.5.20 add marimo-team/skills -s marimo-notebook -a claude-code -a codex -y` from the repo root.
+The lock records an observed hash but not agent targets or an immutable revision for this plain source; replay the command to update and inspect `git diff -- skills-lock.json` before committing an intentional upstream change.
+
 ## Repository Structure
 
 - **`ap_distribution.md`** - Complete mathematical paper with proofs
