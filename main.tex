@@ -14,6 +14,14 @@
 \newcommand{\AP}{\operatorname{AP}}
 \title{Average precision under random ranking:\\baseline, variability, and formal verification}
 \author{Shantanu Singh \and Anne E. Carpenter}
+\makeatletter
+\let\originalmaketitle\@maketitle
+\def\@maketitle{\originalmaketitle\vspace{-1.5em}\begin{center}
+Broad Institute of MIT and Harvard\\
+\small\href{mailto:shantanu@broadinstitute.org}{shantanu@broadinstitute.org}\quad
+\href{mailto:anne@broadinstitute.org}{anne@broadinstitute.org}
+\end{center}}
+\makeatother
 \date{September 7, 2026}
 \begin{document}
 \maketitle
@@ -220,6 +228,14 @@ Finally, all moment results here concern the marginal law of one ranking.
 They do not imply independence between AP scores from different queries or profiles.
 The variance of an average requires covariances unless independence is separately justified.
 Dependent mAP models and tail approximations therefore remain outside the scope of this note.
+
+\section*{Acknowledgments}
+We appreciate funding from the National Institutes of Health (NIH MIRA R35 GM122547 to AEC).
+
+\paragraph{AI assistance.}
+Claude (Anthropic) and Codex (OpenAI) assisted with mathematical exploration, code and Lean proof development, literature comparison, and manuscript drafting and revision.
+AI-generated suggestions were evaluated through mathematical review, numerical checks, and Lean verification where applicable.
+The authors are responsible for the final content; the scope and limitations of formal verification are described above.
 
 \clearpage
 \appendix
