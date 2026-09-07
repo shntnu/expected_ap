@@ -3,3 +3,16 @@
 build/
 __pycache__/
 .ruff_cache/
+.pytest_cache/
+.DS_Store
+.claude/worktrees/
+
+# Files produced by compiling the manuscript in the repository root.
+/main.pdf
+/main.aux
+/main.log
+/main.out
+/main.fls
+/main.fdb_latexmk
+/main.synctex.gz
+/main.toc
