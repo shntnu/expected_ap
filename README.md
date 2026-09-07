@@ -4,14 +4,17 @@ A short mathematical note by Shantanu Singh and Anne E. Carpenter.
 The chance mean of AP exceeds prevalence whenever relevant and irrelevant items are both present.
 This paper gives exact mean and variance formulas, explicit boundary cases, two asymptotic regimes, and accompanying Lean proofs under uniform random ranking with a fixed positive count.
 
-[Read the paper (PDF)](https://github.com/shntnu/expected_ap/releases/download/v1.0.0/paper.pdf) | [Download the reproducible supplement](https://github.com/shntnu/expected_ap/releases/download/v1.0.0/supplement.zip) | [Version 1.0.0](https://github.com/shntnu/expected_ap/releases/tag/v1.0.0)
+The harmonic expectation and its derivation were obtained independently of Manzhos et al. and recorded on [September 7, 2025](https://github.com/shntnu/expected_ap/blob/4efbcf57d0d28a158dcbbe52872847d8e21ba130/expected_ap.md), before their [November 4, 2025 preprint](https://arxiv.org/abs/2511.02571). The Lean expectation proof followed in March 2026, and the second-moment derivation and variance verification in July 2026.
+See [VERIFICATION.md](VERIFICATION.md#provenance) for the source commits.
+
+[Read the paper (PDF)](https://github.com/shntnu/expected_ap/releases/download/v1.0.1/paper.pdf) | [Download the reproducible supplement](https://github.com/shntnu/expected_ap/releases/download/v1.0.1/supplement.zip) | [Version 1.0.1](https://github.com/shntnu/expected_ap/releases/tag/v1.0.1)
 
 ## Cite
 
 Singh, S., and Carpenter, A. E. (2026).
-*Average precision under random ranking: baseline, variability, and formal verification* (Version 1.0.0).
+*Average precision under random ranking: baseline, variability, and formal verification* (Version 1.0.1).
 Broad Institute of MIT and Harvard.
-[Versioned release](https://github.com/shntnu/expected_ap/releases/tag/v1.0.0).
+[Versioned release](https://github.com/shntnu/expected_ap/releases/tag/v1.0.1).
 
 Use GitHub's **Cite this repository** button or copy [CITATION.bib](CITATION.bib).
 [CITATION.cff](CITATION.cff) provides the author and version metadata in a machine-readable format.

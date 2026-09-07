@@ -33,16 +33,16 @@ The exact types are emitted by `lake env lean verify.lean`.
 | `demo.py` | `1eb7dc1a049871f8d31db81e68fb5afc3c3c1269863bce6e0c1d8feb52b7f074` |
 | `moments.py` | `a8e21928517e70e11aefafeebe7c03498b714cde875449f3f99a13c18348694e` |
 | `package.py` | `c88f5fe3dc855e39fc6298272bd481a01ef78eaf5da39d3815afd263d16ad736` |
-| `verification_record.py` | `005314451430bc87c9515b26bcce71b72694a1b6814ccbcfb7ff5c3ef0488d35` |
+| `verification_record.py` | `3cdf728ae01dabf2e675ea21d7b38176c8a39551e12b374cad7499902b0cd429` |
 | `verify.py` | `10cf06685afb42f07c54f94638090517a97308f6ddaac685957d7d2da32aed00` |
-| `README.md` | `4340d00665bd32dbb637b41668b62528a7a761d7ef0125df0e53318f0c32666b` |
-| `SUBMISSION_REVIEW.md` | `1c499397facb09391457b94c8110718f56a6eddda1eb5e00c1acc31873cb2c36` |
+| `README.md` | `fc0b00c0454f9eb75a30baae88fce409f8315133157bb81657a93338a6615866` |
+| `SUBMISSION_REVIEW.md` | `6a7d05d4be6d07eeb8302a32251f7f273e4579abde0440698656f7bea07da845` |
 | `.gitignore` | `c9bf0fd7a94f8279d6e46a966ddfb2d7fad58f33e59985967714a4872c11a01d` |
-| `CITATION.cff` | `17e85c61faddfb01fc9127719f63ceaac850c6accf140b6cb63524486e2d0795` |
-| `CITATION.bib` | `024d22851917a32a9d2bb7880a1614f36aef3da1794da10f355c84145b0d4cf8` |
-| `main.tex` | `c636a73c2ec41e168c09f524af26ea784e78f0d996a6f71badc3abb5ef556461` |
-| `uv.lock` | `be03283262f4fcc9eab32bde9287ece2b3616880d989730c56a3f4d970459f96` |
-| `pyproject.toml` | `d19050e606ac7210b69dc211d9c5ee0de14d316b0759b8ad4a15ca2a2a3816da` |
+| `CITATION.cff` | `eb32395ab9e8938f9a84d7696127c7e5939cd5982b005b9ad115b6bda5a99729` |
+| `CITATION.bib` | `482b393bde80788125196a0eea341f6a6541132f41043bd4d0d4e5dcd49ff973` |
+| `main.tex` | `40947ece03382a333b611698a26df5737ae3507bcb6d5ddd60a8b4020e909ee1` |
+| `uv.lock` | `99ff2edcd3a00e0e2e8feae138483020332fcd25c7bbde02605bef98eaaf6879` |
+| `pyproject.toml` | `7484db6720cd762567d4200ece3b42fdbbb83efd229b68aa04db741051b2e21a` |
 | `.python-version` | `aa0d6581054e6e4ff3f91839deca7a854ad37221b8784d060b42d0f847ff1a3b` |
 | `reproduce.sh` | `85378fc990163a2268a3533bbeb4a64309ab06864b3c7c434500b905cab4c545` |
 | `figures/ap.pdf` | `4def71088ca8c121d41cc3d8565c4637f5e925ce59b0df5c2171e929931ee2cd` |
@@ -72,6 +72,8 @@ The exact types are emitted by `lake env lean verify.lean`.
 
 This focused branch retains the committed three-module proof chain from `a96320920e82901c7bb0d3ef45f5cbf1a0436ca2`.
 It does not incorporate unrelated uncommitted distribution extensions from the exploratory checkout.
-The original expectation formula and written derivation are in commit `4efbcf5` (September 7, 2025); the complete expectation proof is in `8aade13` (March 23, 2026).
-The variance implementation and proof are in `10433fc` and `4071dd5` (July 23, 2026).
-These are recorded development dates, not certified dates of first public availability or claims of worldwide priority.
+The harmonic expectation formula and written exchangeability derivation are in the [September 7, 2025 source](https://github.com/shntnu/expected_ap/blob/4efbcf57d0d28a158dcbbe52872847d8e21ba130/expected_ap.md), Theorem 1 and proof.
+This recorded derivation predates the [November 4, 2025 preprint](https://arxiv.org/abs/2511.02571) of Manzhos, Ianevych, and Melnyk.
+The complete Lean expectation proof is in [commit 8aade13](https://github.com/shntnu/expected_ap/commit/8aade13f2bbb641f8cc75065770d391e5f42c798), dated March 23, 2026.
+The variance implementation and proof are in [commit 10433fc](https://github.com/shntnu/expected_ap/commit/10433fc53ec65bbbc3a337a50de26c9cdbb2f9ea) and [commit 4071dd5](https://github.com/shntnu/expected_ap/commit/4071dd5c12281744259caebede7099a8bb7d5f0b), both dated July 23, 2026.
+The dates above are recorded Git author and committer dates; they identify source versions rather than independently certified dates of first public availability.

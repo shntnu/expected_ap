@@ -2,7 +2,7 @@
 
 Prepared for Shantanu Singh and Anne E. Carpenter on September 7, 2026.
 
-The seven-page manuscript includes both mathematical appendices and four references.
+The seven-page manuscript includes both mathematical appendices and five references.
 The source archive contains `main.tex`, the vector figure, and the remaining reproducible supplement in `anc/supplement.zip`.
 Extract the inner ZIP into the source root alongside `main.tex` before running the complete workflow.
 The standalone `build/supplement.zip` contains the entire source tree in one archive.
@@ -18,13 +18,15 @@ The final review checked the paper and supplement from the following perspective
 | How variable is an individual AP score? | Proposition 2 gives exact variance; Section 5 reports SD 0.208750 for the example and describes the figure band as spread whose coverage depends on the discrete law. |
 | When can the asymptotic variance be used? | Corollary 1 and Appendix B specify fixed prevalence and fixed positive count separately; Section 5 shows the finite-list discrepancy at L = 100, M = 10. |
 | Are the derivations and boundary cases correct? | Both appendices were independently reviewed, both asymptotic leading terms were checked symbolically, and exact enumeration covers small lists including M = 0, M = 1, and M = L. |
-| How does this relate to earlier work? | All four references and their mathematical descriptions were checked against primary sources; the published full-ranking variance is symbolically identical. |
+| How does this relate to earlier work? | All four prior-work references and their mathematical descriptions were checked against primary sources; the published full-ranking variance is symbolically identical. |
+| When was the independent expectation derivation recorded? | The introduction cites the September 7, 2025 manuscript and contrasts its date with the November 4, 2025 Manzhos et al. preprint; the March and July 2026 formalization stages are dated separately. |
 | What exactly does Lean establish? | Section 6 and VERIFICATION.md identify theorem names, hypotheses, logical dependencies, and the scope of the formal proofs. |
 | How can I calculate moments or reproduce the figure? | README.md provides a minimal Python example, separate Python-only commands, exact-arithmetic cost, enumeration cost, and the complete workflow. |
 | Can the distributed files reproduce the paper? | The source archives contain explicit current inputs, locked dependencies, build instructions, the verification record, and their own packaging script. |
 
 Primary sources used for the literature review were the [Zhang and Su author-uploaded paper](https://www.researchgate.net/publication/254043796_Statistical_inference_on_recall_precision_and_average_precision_under_random_selection), [Lopes and Bontempi publisher PDF](https://link.springer.com/content/pdf/10.1007/978-3-662-44851-9_21.pdf), [Bestgen publisher PDF](https://ufal.mff.cuni.cz/pbml/103/art-bestgen.pdf), and [Manzhos et al. published article](https://www.vmsta.org/journal/VMSTA/article/353/read). The review found no defect in the paper's mathematical results or citation mappings.
 The changes clarify application and interpretation, align zero-positive Python behavior with the manuscript, correct two Lean source comments, and make archive generation part of reproduction.
+The introduction and repository landing page also document the earlier independent expectation derivation with a citation to its original source.
 
 ## Completed checks
 
@@ -73,6 +75,6 @@ Official submission references:
 - [Ancillary files](https://info.arxiv.org/help/ancillary_files.html).
 - [License options](https://info.arxiv.org/help/license/index.html).
 
-The paper and supplement are prepared for the repository's `main` branch and versioned GitHub release `v1.0.0`.
+The paper and supplement are prepared for the repository's `main` branch and versioned GitHub release `v1.0.1`.
 The release includes the manuscript PDF, reproducible supplement, arXiv source package, and citation metadata.
 No arXiv submission has been made.

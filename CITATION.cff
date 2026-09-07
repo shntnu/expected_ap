@@ -8,10 +8,10 @@ authors:
   - family-names: Carpenter
     given-names: Anne E.
     affiliation: Broad Institute of MIT and Harvard
-version: 1.0.0
+version: 1.0.1
 date-released: "2026-09-07"
 repository-code: "https://github.com/shntnu/expected_ap"
-url: "https://github.com/shntnu/expected_ap/releases/tag/v1.0.0"
+url: "https://github.com/shntnu/expected_ap/releases/tag/v1.0.1"
 preferred-citation:
   type: report
   title: "Average precision under random ranking: baseline, variability, and formal verification"
@@ -27,6 +27,6 @@ preferred-citation:
   year: 2026
   month: 9
   date-published: "2026-09-07"
-  version: 1.0.0
-  notes: Manuscript and computational supplement, version 1.0.0.
-  url: "https://github.com/shntnu/expected_ap/releases/tag/v1.0.0"
+  version: 1.0.1
+  notes: Manuscript and computational supplement, version 1.0.1.
+  url: "https://github.com/shntnu/expected_ap/releases/tag/v1.0.1"

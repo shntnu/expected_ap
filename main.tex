@@ -45,10 +45,15 @@ Bestgen provides an exact hypergeometric baseline calculation~\cite{bestgen}.
 Manzhos, Ianevych, and Melnyk give harmonic expectation and variance formulas for AP at a cutoff under two sampling models~\cite{manzhos}.
 Their sampling-without-replacement model, specialized to the full ranking, gives the same moments as those presented here.
 
+Our harmonic expectation formula and its exchangeability derivation were obtained independently of Manzhos et al. and recorded in the repository on September 7, 2025~\cite{early}, before their preprint of November 4, 2025~\cite{manzhos}.
+The Lean expectation proof followed on March 23, 2026, and the second-moment derivation and variance verification on July 23, 2026.
+The accompanying verification record links these stages to their source commits.
+
 This note derives the mean by conditioning on the rank of one relevant item and the second moment by classifying products according to the number of distinct ranks involved.
 The resulting formulas give explicit boundary cases and asymptotic variance expressions for fixed prevalence and for a fixed number of relevant items.
 Lean proofs accompany the moment calculations, and a deterministic Python demonstration illustrates their dependence on list length and positive count.
 
+\newpage
 \section{The random-ranking model}
 Let a list have length $L$, with exactly $M$ relevant items, where $1\le M\le L$.
 Rank 1 is the highest-priority item, and prevalence is the relevant fraction $M/L$.
@@ -179,7 +184,7 @@ For example, at $L=100$ and $M=10$, the exact variance is approximately $0.00287
 Use the exact moments for a given list and the asymptotic expressions to describe limiting behavior.
 The one-standard-deviation band in panel C summarizes spread around the null mean; its probability coverage depends on the discrete AP law.
 
-\begin{figure}[tbp]
+\begin{figure}[!tp]
 \centering
 \includegraphics[width=\textwidth]{figures/ap.pdf}
 \caption{Exact moments and a discrete AP law.
@@ -190,6 +195,7 @@ The dashed line is the mean, and the shaded band is one standard deviation on ei
 \label{fig:demo}
 \end{figure}
 
+\newpage
 \section{Formal verification and reproducibility}
 The supplement contains Lean proofs of the mean and second moment, their supporting finite-probability constructions, and an audit of the named results.
 The pinned toolchain is Lean 4.23.0-rc2, and the dependency revisions are fixed by the Lake manifest.
@@ -317,5 +323,9 @@ Average precision at cutoff $k$ under random rankings: expectation and variance.
 \emph{Modern Stochastics: Theory and Applications}, 13(3):357--374, 2026.
 \href{https://doi.org/10.15559/26-VMSTA298}{doi:10.15559/26-VMSTA298}.
 Preprint: \href{https://arxiv.org/abs/2511.02571}{arXiv:2511.02571}, November 2025.
+\bibitem{early} S. Singh.
+Expected Average Precision Under Random Ranking: A Finite-Sample Analysis.
+Repository manuscript, September 7, 2025, Theorem 1 and proof.
+Commit \texttt{4efbcf5}; \href{https://github.com/shntnu/expected_ap/blob/4efbcf57d0d28a158dcbbe52872847d8e21ba130/expected_ap.md}{archived source}.
 \end{thebibliography}
 \end{document}

@@ -57,8 +57,10 @@ for package in manifest["packages"]:
 text += "\n## Provenance\n\n"
 text += "This focused branch retains the committed three-module proof chain from `a96320920e82901c7bb0d3ef45f5cbf1a0436ca2`.\n"
 text += "It does not incorporate unrelated uncommitted distribution extensions from the exploratory checkout.\n"
-text += "The original expectation formula and written derivation are in commit `4efbcf5` (September 7, 2025); the complete expectation proof is in `8aade13` (March 23, 2026).\n"
-text += "The variance implementation and proof are in `10433fc` and `4071dd5` (July 23, 2026).\n"
-text += "These are recorded development dates, not certified dates of first public availability or claims of worldwide priority.\n"
+text += "The harmonic expectation formula and written exchangeability derivation are in the [September 7, 2025 source](https://github.com/shntnu/expected_ap/blob/4efbcf57d0d28a158dcbbe52872847d8e21ba130/expected_ap.md), Theorem 1 and proof.\n"
+text += "This recorded derivation predates the [November 4, 2025 preprint](https://arxiv.org/abs/2511.02571) of Manzhos, Ianevych, and Melnyk.\n"
+text += "The complete Lean expectation proof is in [commit 8aade13](https://github.com/shntnu/expected_ap/commit/8aade13f2bbb641f8cc75065770d391e5f42c798), dated March 23, 2026.\n"
+text += "The variance implementation and proof are in [commit 10433fc](https://github.com/shntnu/expected_ap/commit/10433fc53ec65bbbc3a337a50de26c9cdbb2f9ea) and [commit 4071dd5](https://github.com/shntnu/expected_ap/commit/4071dd5c12281744259caebede7099a8bb7d5f0b), both dated July 23, 2026.\n"
+text += "The dates above are recorded Git author and committer dates; they identify source versions rather than independently certified dates of first public availability.\n"
 (root / "VERIFICATION.md").write_text(text)
 print("Verified eight axiom reports; wrote VERIFICATION.md with source hashes.")
