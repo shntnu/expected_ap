@@ -1,6 +1,14 @@
 """Exact mean and variance of full-list AP under uniform random ranking."""
 
 from fractions import Fraction
+from operator import index
+
+
+def _validate_counts(L: int, M: int) -> tuple[int, int]:
+    L, M = index(L), index(M)
+    if L < 1 or not 0 <= M <= L:
+        raise ValueError(f"require L >= 1 and 0 <= M <= L, got L={L}, M={M}")
+    return L, M
 
 
 def harmonic(L: int, power: int = 1) -> Fraction:
@@ -9,9 +17,10 @@ def harmonic(L: int, power: int = 1) -> Fraction:
 
 
 def expected_ap(L: int, M: int) -> Fraction:
-    """Return E[AP] for 1 <= M <= L; Proposition 1."""
-    if not 1 <= M <= L:
-        raise ValueError(f"require 1 <= M <= L, got L={L}, M={M}")
+    """Return E[AP] for integer L >= 1 and 0 <= M <= L; Proposition 1."""
+    L, M = _validate_counts(L, M)
+    if M == 0:
+        return Fraction(0)
     if L == 1:
         return Fraction(1)
     H = harmonic(L)
@@ -19,9 +28,10 @@ def expected_ap(L: int, M: int) -> Fraction:
 
 
 def var_ap(L: int, M: int) -> Fraction:
-    """Return Var(AP) for 1 <= M <= L; Proposition 2."""
-    if not 1 <= M <= L:
-        raise ValueError("require 1 <= M <= L")
+    """Return Var(AP) for integer L >= 1 and 0 <= M <= L; Proposition 2."""
+    L, M = _validate_counts(L, M)
+    if M == 0:
+        return Fraction(0)
     H = harmonic(L)
     H2 = harmonic(L, 2)
 

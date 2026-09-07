@@ -15,4 +15,5 @@ pdflatex -interaction=nonstopmode -halt-on-error -output-directory=build main.te
     lake env lean verify.lean
 ) > build/lean.log 2>&1
 uv run --locked python verification_record.py
-printf 'Reproduced build/main.pdf, figure, tables, and verification record.\n'
+uv run --locked python package.py
+printf 'Reproduced build/main.pdf, figure, tables, verification record, and source archives.\n'

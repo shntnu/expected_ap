@@ -1,5 +1,5 @@
 [project]
 name = "ap-moments-note"
-version = "0.1.0"
+version = "1.0.0"
 requires-python = ">=3.12,<3.13"
 dependencies = ["matplotlib==3.10.6", "numpy==2.3.3", "sympy==1.14.0"]

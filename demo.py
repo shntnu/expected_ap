@@ -10,6 +10,7 @@ from collections import Counter
 from fractions import Fraction
 from itertools import combinations
 from math import pi, sqrt
+from operator import index
 from pathlib import Path
 
 import matplotlib
@@ -25,6 +26,11 @@ OUTPUT = Path(__file__).resolve().parent / "build"
 
 def enumerate_ap(length, positives):
     """Score every binary label vector by cumulative precision at positive ranks."""
+    length, positives = index(length), index(positives)
+    if length < 1 or not 0 <= positives <= length:
+        raise ValueError("require length >= 1 and 0 <= positives <= length")
+    if positives == 0:
+        return Counter({Fraction(0): 1})
     counts = Counter()
     for positions in combinations(range(length), positives):
         labels = [0] * length
@@ -43,7 +49,7 @@ def enumerate_ap(length, positives):
 def validate():
     cases = 0
     for length in range(1, 11):
-        for positives in range(1, length + 1):
+        for positives in range(length + 1):
             counts = enumerate_ap(length, positives)
             n = sum(counts.values())
             mean = sum(value * count for value, count in counts.items()) / n
@@ -57,6 +63,14 @@ def validate():
                 "variance",
             )
             cases += 1
+    for counts in [(0, 0), (1, -1), (1, 2)]:
+        for function in (expected_ap, var_ap, enumerate_ap):
+            try:
+                function(*counts)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError((function.__name__, counts, "invalid counts"))
     return cases
 
 
@@ -185,7 +199,7 @@ def main():
         ],
     )
     print(
-        f"Exact enumeration agrees with both formulas for all {cases} cases with 1 <= M <= L <= 10."
+        f"Exact enumeration agrees with both formulas for all {cases} cases with 1 <= L <= 10 and 0 <= M <= L (55 positive-count and 10 zero-positive cases)."
     )
     print(f"Wrote figure (PDF/PNG) and two CSV tables to {OUTPUT}")
     print(

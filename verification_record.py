@@ -19,6 +19,11 @@ manifest = json.loads((root / "lean/lake-manifest.json").read_text())
 files = (
     sorted(root.glob("*.py"))
     + [
+        root / "README.md",
+        root / "SUBMISSION_REVIEW.md",
+        root / ".gitignore",
+        root / "CITATION.cff",
+        root / "CITATION.bib",
         root / "main.tex",
         root / "uv.lock",
         root / "pyproject.toml",

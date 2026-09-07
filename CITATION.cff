@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "Please cite the manuscript below when using this work or its computational supplement."
+title: "Average precision under random ranking: baseline, variability, and formal verification"
+authors:
+  - family-names: Singh
+    given-names: Shantanu
+    affiliation: Broad Institute of MIT and Harvard
+  - family-names: Carpenter
+    given-names: Anne E.
+    affiliation: Broad Institute of MIT and Harvard
+version: 1.0.0
+date-released: "2026-09-07"
+repository-code: "https://github.com/shntnu/expected_ap"
+url: "https://github.com/shntnu/expected_ap/releases/tag/v1.0.0"
+preferred-citation:
+  type: report
+  title: "Average precision under random ranking: baseline, variability, and formal verification"
+  authors:
+    - family-names: Singh
+      given-names: Shantanu
+      affiliation: Broad Institute of MIT and Harvard
+    - family-names: Carpenter
+      given-names: Anne E.
+      affiliation: Broad Institute of MIT and Harvard
+  institution:
+    name: Broad Institute of MIT and Harvard
+  year: 2026
+  month: 9
+  date-published: "2026-09-07"
+  version: 1.0.0
+  notes: Manuscript and computational supplement, version 1.0.0.
+  url: "https://github.com/shntnu/expected_ap/releases/tag/v1.0.0"

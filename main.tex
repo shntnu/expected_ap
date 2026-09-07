@@ -18,20 +18,19 @@
 \let\originalmaketitle\@maketitle
 \def\@maketitle{\originalmaketitle\vspace{-1.5em}\begin{center}
 Broad Institute of MIT and Harvard\\
-\small\href{mailto:shantanu@broadinstitute.org}{shantanu@broadinstitute.org}\quad
-\href{mailto:anne@broadinstitute.org}{anne@broadinstitute.org}
+\small\{\href{mailto:shantanu@broadinstitute.org}{shantanu},\href{mailto:anne@broadinstitute.org}{anne}\}@broadinstitute.org
 \end{center}}
 \makeatother
 \date{September 7, 2026}
 \begin{document}
 \maketitle
 \begin{abstract}
-Average precision under random ranking depends on both the number of relevant items and the list length.
+The mean and variance of full-list, non-interpolated average precision under a uniformly random ranking depend on both the fixed number of relevant items and the list length.
 Its expectation exceeds prevalence when relevant and irrelevant items are both present.
 We give a short derivation of the harmonic expectation and organize the second moment into four sums according to the number of distinct ranks in each product.
 The resulting expressions recover existing moment results, including the full-ranking specialization of formulas for average precision at a cutoff.
 We accompany the derivations with Lean proofs and a deterministic Python demonstration.
-Two asymptotic regimes show why fixed prevalence and a fixed number of relevant items give different variance coefficients.
+For list length $L$, the variance is asymptotic to $p(1-p)/L$ at fixed prevalence $p\in(0,1)$ and to $\pi^2/(6ML)$ at fixed positive count $M\ge1$.
 An enumerated example illustrates the mean and standard deviation for a small ranking.
 \end{abstract}
 
@@ -52,6 +51,7 @@ Lean proofs accompany the moment calculations, and a deterministic Python demons
 
 \section{The random-ranking model}
 Let a list have length $L$, with exactly $M$ relevant items, where $1\le M\le L$.
+Rank 1 is the highest-priority item, and prevalence is the relevant fraction $M/L$.
 Write $Z_k\in\{0,1\}$ for relevance at rank $k$.
 Full-list, non-interpolated AP is
 \begin{equation}\label{eq:ap}
@@ -63,7 +63,8 @@ For ordered relevant ranks $R_1<\cdots<R_M$, equation~\eqref{eq:ap} becomes
 \begin{equation}\label{eq:ranks}
  A=\frac{1}{M}\sum_{j=1}^{M}\frac{j}{R_j}.
 \end{equation}
-The positive count is fixed, and any tie-breaking procedure is assumed to preserve this uniform null law.
+With tied scores, equation~\eqref{eq:ap} uses an ordering of individual items; evaluating an entire tied group at a common score threshold defines a different statistic.
+Any tie-breaking procedure is assumed to preserve the uniform null law on rank subsets.
 For $M=L$, AP is identically one.
 We assign AP zero at $M=0$.
 
@@ -170,6 +171,13 @@ The leading variance coefficient is $p(1-p)$ at fixed prevalence and $\pi^2/(6M)
 Figure~\ref{fig:demo} displays the baseline correction and the two variance regimes.
 The calculations use exact rational moments, converted to floating point only for plotting.
 For $L=8$ and $M=2$, enumerating binary label vectors and scoring cumulative precision at relevant ranks gives an exact illustration of the mean and standard deviation.
+The mean is $3403/7840\approx0.434056$, compared with prevalence $0.25$, and the standard deviation is approximately $0.208750$.
+Thus a score near $0.43$ is close to the chance mean for this list.
+
+The exact formulas quantify finite-list effects that the leading asymptotic terms can miss.
+For example, at $L=100$ and $M=10$, the exact variance is approximately $0.002876$, while $p(1-p)/L=0.0009$.
+Use the exact moments for a given list and the asymptotic expressions to describe limiting behavior.
+The one-standard-deviation band in panel C summarizes spread around the null mean; its probability coverage depends on the discrete AP law.
 
 \begin{figure}[tbp]
 \centering
@@ -191,13 +199,16 @@ The second-moment theorem requires only the latter condition, and separate varia
 All these names are in namespace \texttt{ExpectedAp}.
 
 The eight audited results depend only on propositional extensionality, classical choice, and quotient soundness: \texttt{propext}, \texttt{Classical.choice}, and \texttt{Quot.sound}.
+These are standard logical foundations used by Mathlib, and the audit checks that the results have no admitted-proof dependencies.
 The accompanying verification record gives exact source hashes, theorem assumptions, and commands.
 The asymptotic expansions are proved in Appendix~\ref{app:asymptotic}, and the Python checks are described below.
 
-The Python demonstration checks the mean and variance by exhaustive enumeration for every $1\le M\le L\le10$.
+The Python demonstration checks the mean and variance by exhaustive enumeration for every $1\le L\le10$ and $0\le M\le L$, including the zero-positive convention.
 An additional check evaluates the four coefficient sums directly and checks symbolic equivalence to the published variance.
 The supplement specifies locked Python dependencies, paper compilation, and Lean verification in one reproducible workflow.
-The demonstration runs as a standalone script.
+The supplement is supplied as \texttt{anc/supplement.zip} with the arXiv source and is available in the \href{https://github.com/shntnu/expected_ap}{paper repository}.
+For the arXiv source download, unpack that supplement alongside \texttt{main.tex} and run \texttt{bash reproduce.sh} from the source root to generate the paper, figure, tables, and verification record.
+The Python demonstration also runs separately as \texttt{uv run -{}-locked python demo.py}.
 
 \section*{Acknowledgments}
 We appreciate funding from the National Institutes of Health (NIH MIRA R35 GM122547 to AEC).

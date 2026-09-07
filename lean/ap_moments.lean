@@ -422,10 +422,8 @@ theorem varianceAP_of_numRelevant_eq_one {L : ℕ} (y : Fin L → Bool)
 
 /-! ### The closed form is correct at the edge cases
 
-These check the *definition* `varianceAPClosedForm` symbolically, not just
-numerically: `M = 0`, `M = 1` and `M = L` are proved directly here, and are
-instances of the general theorem `varianceAP_closed_form` proved at the end of
-the file. -/
+The cases `M = 0`, `M = 1` and `M = L` are proved directly here by evaluating `varianceAPClosedForm` symbolically.
+These proofs include `M = 0` and `L = 1`, which lie outside the hypotheses of `varianceAP_closed_form` at the end of the file. -/
 
 /-- At `M = 0` the closed form degenerates to `0` (division by `M² = 0`). -/
 theorem varianceAPClosedForm_zero (L : ℕ) : varianceAPClosedForm L 0 = 0 := by
@@ -1901,13 +1899,10 @@ theorem secondMomentAP_eq_expectedWSq_div {L : ℕ} (y : Fin L → Bool)
 
 /-! ### The general second moment and variance, proved
 
-`W = ∑_{i ≤ k} Z_i Z_k / k` squares into a sum over pairs-of-pairs whose
-expectation depends only on the coincidence pattern of the indices.  The
-`V1`–`V12` lemmas above reduce the four pattern sums (`sigSum`) to the harmonic
-polynomials of `expectedWSq` and assemble the result.  The same identity is
-independently checked by exact rational enumeration in the `native_decide`
-examples above, and outside Lean against exhaustive enumeration for all
-`1 ≤ M ≤ L ≤ 12` (`test_ap_moments.py`). -/
+`W = sum_{i <= k} Z_i Z_k / k` squares into a sum over pairs of pairs whose expectation depends only on the coincidence pattern of the indices.
+The `V1`-`V12` lemmas above reduce the four pattern sums (`sigSum`) to the harmonic polynomials of `expectedWSq` and assemble the result.
+The same identity is independently checked by exact rational enumeration in the `native_decide` examples above.
+The supplement's `demo.py` checks the mean and variance by exhaustive enumeration for `1 <= L <= 10` and `0 <= M <= L`. -/
 
 /-- **The general variance closed form.**
 `Var(AP) = (E[W²] - E[W]²)/M²` under a uniformly random ranking. -/
