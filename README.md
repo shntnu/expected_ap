@@ -54,4 +54,4 @@ The asymptotics and the interpretation of earlier literature are mathematical pr
 The paper can be submitted as `main.tex` with `figures/ap.pdf`; references are embedded, so no BibTeX run or custom class is needed.
 The upload package places this reproducible supplement under arXiv's `anc/` directory.
 Do not upload `.lake`, `.venv`, build logs, or the compiled manuscript PDF as part of the TeX source.
-See the separate review checklist delivered with the prepared archive for author and submission decisions.
+See [SUBMISSION_REVIEW.md](SUBMISSION_REVIEW.md) for recorded author details, acknowledgments, license and category choices, and remaining submission steps.
