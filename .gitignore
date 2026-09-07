@@ -1,18 +1,5 @@
-# Python-generated files
-__pycache__/
-.pytest_cache/
-.ruff_cache/
-*.py[oc]
+.venv/
+.lake/
 build/
-dist/
-wheels/
-*.egg-info
-
-# Virtual environments
-.venv
-.lake
-resources/
-.claude/
-.agents/
-
-.DS_Store
+__pycache__/
+.ruff_cache/
