@@ -32,32 +32,23 @@ We give a short derivation of the harmonic expectation and organize the second m
 The resulting expressions recover existing moment results, including the full-ranking specialization of formulas for average precision at a cutoff.
 We accompany the derivations with Lean proofs and a deterministic Python demonstration.
 Two asymptotic regimes show why fixed prevalence and a fixed number of relevant items give different variance coefficients.
-An enumerated example distinguishes compact moment formulas from a representation of the full distribution that still requires counting rank subsets.
+An enumerated example illustrates the mean and standard deviation for a small ranking.
 \end{abstract}
 
 \section{Introduction}
 Average precision (AP) summarizes how early a ranking retrieves relevant items.
-Interpreting a score relative to chance requires specifying both a random-ranking model and the quantities being compared.
-The null mean describes the baseline, the variance describes fluctuations, and tail probabilities answer a different question.
-Confusing these quantities can make a baseline correction appear to provide more statistical information than it does.
+Under a uniformly random ranking with a fixed number of relevant items, the expectation gives the chance baseline and the variance quantifies fluctuations around it.
 
-Exact AP moment calculations are already available.
+Exact AP moments have been studied using several complementary approaches.
 Zhang and Su organize the first two moments through hit-rank distributions~\cite{zhang}.
 Lopes and Bontempi study the null mean and variance for AP and discuss other precision--recall interpolation rules~\cite{lopes}.
 Bestgen provides an exact hypergeometric baseline calculation~\cite{bestgen}.
 Manzhos, Ianevych, and Melnyk give harmonic expectation and variance formulas for AP at a cutoff under two sampling models~\cite{manzhos}.
 Their sampling-without-replacement model, specialized to the full ranking, gives the same moments as those presented here.
 
-This note provides readable derivations, explicit boundary cases, and accompanying formal verification.
-The mean follows by conditioning on the rank of one relevant item.
-The second moment follows by classifying products according to the number of distinct ranks involved.
-We distinguish these moment formulas from the exact rank-subset representation of the distribution, whose evaluation still requires counting.
-We make no first-discovery claim for the moments or their asymptotics.
-
-The harmonic expectation and its exchangeability derivation were recorded in this project's repository in September 2025, before the November 2025 preprint of Manzhos and colleagues.
-A complete Lean verification of the expectation was added in March 2026; the variance derivation and verification were added in July 2026.
-These dates describe the recorded development history rather than establishing publication priority.
-The corresponding commits are identified in the accompanying verification record.
+This note derives the mean by conditioning on the rank of one relevant item and the second moment by classifying products according to the number of distinct ranks involved.
+The resulting formulas give explicit boundary cases and asymptotic variance expressions for fixed prevalence and for a fixed number of relevant items.
+Lean proofs accompany the moment calculations, and a deterministic Python demonstration illustrates their dependence on list length and positive count.
 
 \section{The random-ranking model}
 Let a list have length $L$, with exactly $M$ relevant items, where $1\le M\le L$.
@@ -72,10 +63,9 @@ For ordered relevant ranks $R_1<\cdots<R_M$, equation~\eqref{eq:ap} becomes
 \begin{equation}\label{eq:ranks}
  A=\frac{1}{M}\sum_{j=1}^{M}\frac{j}{R_j}.
 \end{equation}
-The model fixes the positive count; it is not a model of independently sampled relevance indicators.
-If scores are tied, a ranking procedure must specify a tie-breaking rule, and the results apply only when its resulting null ranking has the stated uniform law.
+The positive count is fixed, and any tie-breaking procedure is assumed to preserve this uniform null law.
 For $M=L$, AP is identically one.
-We assign AP zero at $M=0$, but the nonzero-positive formulas below do not extend to that case by substituting $M=0$.
+We assign AP zero at $M=0$.
 
 \section{The exact baseline}
 \begin{proposition}[Expectation]\label{prop:mean}
@@ -125,8 +115,7 @@ For $L>1$, summing over the identity of the positive at rank $k$ gives
  =\frac ML+(k-1)\frac{M(M-1)}{L(L-1)}.
 \]
 Multiplying by $1/(Mk)$ and summing over $k$ recovers Proposition~\ref{prop:mean}.
-This identity connects a hit-rank representation to a harmonic evaluation without finding the distribution of AP itself.
-The corresponding second-moment approaches likewise average products of the same statistic in different orders.
+This identity evaluates the hit-rank sum in harmonic form.
 
 \section{The second moment}
 Write $W=MA$ and define, for positive integers $r$,
@@ -161,7 +150,7 @@ Theorem 1 of Manzhos et al.~\cite{manzhos} normalizes AP at cutoff $k$ by $\min(
 Setting $k=N=L$ and $m=M$ gives the normalization in~\eqref{eq:ap}.
 Our supplementary symbolic calculation shows that their resulting variance and~\eqref{eq:var} are identical as rational expressions for $L\ge4$.
 The smaller lists are covered directly by Proposition~\ref{prop:second}.
-For comparison with Lopes and Bontempi~\cite{lopes}, the relevant statistic is their $\mathrm{AUPRC}_{p\mathrm{max}}$; their other interpolation rules define different statistics.
+The statistic in~\eqref{eq:ap} corresponds to $\mathrm{AUPRC}_{p\mathrm{max}}$ in Lopes and Bontempi~\cite{lopes}.
 
 \subsection{Two variance regimes}
 \begin{corollary}\label{cor:asymptotic}
@@ -175,13 +164,12 @@ For fixed $M\ge1$,
 \]
 \end{corollary}
 Appendix~\ref{app:asymptotic} derives these expansions from Proposition~\ref{prop:second}.
-The fixed-prevalence expansion is not uniform down to prevalence zero.
-Substituting $p=M/L$ into its leading term while holding $M$ fixed would consequently give the wrong order of variance.
+The leading variance coefficient is $p(1-p)$ at fixed prevalence and $\pi^2/(6M)$ at fixed positive count.
 
 \section{Demonstration and interpretation}
 Figure~\ref{fig:demo} displays the baseline correction and the two variance regimes.
 The calculations use exact rational moments, converted to floating point only for plotting.
-A small distribution is computed independently by enumerating binary label vectors and scoring cumulative precision at relevant ranks.
+For $L=8$ and $M=2$, enumerating binary label vectors and scoring cumulative precision at relevant ranks gives an exact illustration of the mean and standard deviation.
 
 \begin{figure}[tbp]
 \centering
@@ -190,44 +178,26 @@ A small distribution is computed independently by enumerating binary label vecto
 (A) Mean divided by prevalence for $M/L=0.1$ and for $M=3$.
 (B) Variance multiplied by $L$; dotted lines mark the respective limits $0.09$ and $\pi^2/18$.
 (C) All 28 label vectors with $L=8$, $M=2$ produce 26 distinct AP values; equal values are combined into probability masses.
-The dashed line is the mean, and the shaded band is one standard deviation on either side.
-It is not a confidence interval or an interval with a specified coverage probability.}
+The dashed line is the mean, and the shaded band is one standard deviation on either side.}
 \label{fig:demo}
 \end{figure}
 
-The finite law admits the representation
-\[
- \Pr(A=a)=\frac{\#\{R\subseteq\{1,\ldots,L\}:|R|=M,\ A(R)=a\}}{\binom LM}.
-\]
-The numerator still counts subsets producing a particular atom.
-This representation is useful for small cases and verification, but does not supply a compact evaluated expression for general tails.
-Nor does it show that no such expression can exist.
-Mean and variance alone do not determine these tails or justify a normal approximation.
-
 \section{Formal verification and reproducibility}
-The supplement contains the three Lean modules needed for the mean, rank-subset representation, and second moment, together with an audit of the named results.
+The supplement contains Lean proofs of the mean and second moment, their supporting finite-probability constructions, and an audit of the named results.
 The pinned toolchain is Lean 4.23.0-rc2, and the dependency revisions are fixed by the Lake manifest.
 The expectation theorem is \texttt{expected\_ap\_closed\_form}; the variance theorem is \texttt{varianceAP\_closed\_form}.
 Both require $L>1$ and a nonzero positive count.
 The second-moment theorem requires only the latter condition, and separate variance theorems cover zero positives, one positive, and all items positive.
 All these names are in namespace \texttt{ExpectedAp}.
 
-The atom theorem is stated for rational AP values, with positive count determined by the label vector.
-PMF normalization requires $M\le L$.
 The eight audited results depend only on propositional extensionality, classical choice, and quotient soundness: \texttt{propext}, \texttt{Classical.choice}, and \texttt{Quot.sound}.
-No audited result depends on an admitted-proof or native-computation axiom.
 The accompanying verification record gives exact source hashes, theorem assumptions, and commands.
-This audit does not certify the Python implementation, asymptotic expansions, or literature comparisons in Lean.
+The asymptotic expansions are proved in Appendix~\ref{app:asymptotic}, and the Python checks are described below.
 
 The Python demonstration checks the mean and variance by exhaustive enumeration for every $1\le M\le L\le10$.
 An additional check evaluates the four coefficient sums directly and checks symbolic equivalence to the published variance.
 The supplement specifies locked Python dependencies, paper compilation, and Lean verification in one reproducible workflow.
-No notebook, input dataset, or stochastic simulation is required.
-
-Finally, all moment results here concern the marginal law of one ranking.
-They do not imply independence between AP scores from different queries or profiles.
-The variance of an average requires covariances unless independence is separately justified.
-Dependent mAP models and tail approximations therefore remain outside the scope of this note.
+The demonstration runs as a standalone script.
 
 \section*{Acknowledgments}
 We appreciate funding from the National Institutes of Health (NIH MIRA R35 GM122547 to AEC).
@@ -235,7 +205,7 @@ We appreciate funding from the National Institutes of Health (NIH MIRA R35 GM122
 \paragraph{AI assistance.}
 Claude (Anthropic) and Codex (OpenAI) assisted with mathematical exploration, code and Lean proof development, literature comparison, and manuscript drafting and revision.
 AI-generated suggestions were evaluated through mathematical review, numerical checks, and Lean verification where applicable.
-The authors are responsible for the final content; the scope and limitations of formal verification are described above.
+The authors are responsible for the final content.
 
 \clearpage
 \appendix

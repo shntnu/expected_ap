@@ -34,7 +34,7 @@ The exact types are emitted by `lake env lean verify.lean`.
 | `moments.py` | `a62b7d3d945cfdc105d27523c36aedb123dea90b3237be6546881de1e9296fc5` |
 | `verification_record.py` | `47b866bd15fd4092583bdd5d639f6d40295b13021f6473a4bf0eff9ae659c8f9` |
 | `verify.py` | `10cf06685afb42f07c54f94638090517a97308f6ddaac685957d7d2da32aed00` |
-| `main.tex` | `920ea3f815544fb4036646d36478ac28d71a74d078bd997e0998ea4105be749d` |
+| `main.tex` | `22c8bf203330095ca97ca71e48af33c02cf0a0b25014dbc2924c0608db93b161` |
 | `uv.lock` | `f42a551741c991c958b95dde385de3818b2deb73de4f57397b4b0bcb53a44b92` |
 | `pyproject.toml` | `5037da18f6503bba751fcd717bc43d056e94e475281cc562d8aaecaa20eb704a` |
 | `.python-version` | `aa0d6581054e6e4ff3f91839deca7a854ad37221b8784d060b42d0f847ff1a3b` |
