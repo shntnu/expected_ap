@@ -117,7 +117,7 @@ curve(
     color=ORANGE,
     **LINE,
 )
-curve("joint", label="this PR: one draw per pair", color=BLUE, **LINE)
+curve("joint", label="this PR: one random number per similarity", color=BLUE, **LINE)
 
 # the worked example from the PR body: a compound truly at p = 0.001
 joint, main = np.array(c["joint"]), np.array(c["main"])

@@ -9,8 +9,8 @@ Three nulls for a group's mAP are compared throughout:
   main      copairs main: one AP draw per distinct (positives, total pairs)
             configuration, copied to every member with that configuration
             (the behaviour copairs#151 fixes)
-  joint     copairs#151: one random number per pair, shared where the pair
-            lies inside the group (joint_map_null in copairs_joint_null.py)
+  joint     copairs#151: one random number per ranked similarity, drawn once
+            where two members share it (joint_map_null in copairs_joint_null.py)
   separate  one independent AP draw per member (the opposite shortcut)
 
 and "plates" is the answer all three estimate: whole simulated experiments

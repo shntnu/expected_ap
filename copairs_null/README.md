@@ -3,7 +3,7 @@
 These are the checks behind [cytomining/copairs#151](https://github.com/cytomining/copairs/pull/151), which fixes the null distribution copairs uses for mAP p-values.
 copairs currently draws one AP null per distinct `(n_pos_pairs, n_total_pairs)` configuration and averages the rows a group's members point at.
 Members with equal counts point at the same row, so a group's mAP null is a single AP null copied across its members and never narrows as replicates are added.
-The proposed null draws one random number per pair instead: a positive pair inside the group enters both members' rank lists, each member's AP comes from its own sorted list, and the group's mAP is their mean.
+The proposed null draws one random number per ranked similarity instead (copairs calls each a pair). The similarity between two members of the group is drawn once and enters both members' rank lists, each member's AP comes from its own sorted list, and the group's mAP is their mean.
 
 This folder is not part of the paper or its supplement; `package.py` and `verification_record.py` do not read it.
 
