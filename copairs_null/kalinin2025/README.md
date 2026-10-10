@@ -28,7 +28,17 @@ Numbers in each pair are copairs 0.5.1 (the paper) then copairs#151.
 
 Cell Painting is saturated either way; the nELISA profiles, where the paper's point is that fewer compounds are retrievable, gain 14 compounds, and the 8-well compounds move most (for example p = 0.044 → 0.003 at mAP 0.115).
 
-**Simulations, Figure 2** (mAP recall against the paper's other metrics): see below.
+**Simulations, Figure 2.** The paper's simulation scores each perturbation with its own `mean_ap.py` (null size 1,000, no FDR) and reports recall, the share of 100 perturbations with p < 0.05. Rerun with no real effect at all (0 differing features, 1,000 perturbations, 100 features), that share is the false-positive rate of each null:
+
+| replicates | controls | paper's null | copairs#151's null |
+|---:|---:|---:|---:|
+| 2 | 12 / 24 / 36 | 5.3% / 7.5% / 4.8% | 5.3% / 2.4% / 5.8% |
+| 3 | 12 / 24 / 36 | 2.2% / 1.3% / 0.8% | 4.7% / 4.5% / 5.3% |
+| 4 | 12 / 24 / 36 | 0.8% / 0.9% / 0.9% | 6.5% / 5.7% / 6.3% |
+
+At 3 and 4 replicates the paper's null spends a fifth or less of its 5% budget. (`fig2_null_joint_strict.csv` holds the same run with the paper's strict `>` tie rule applied to the corrected null, which rejects too often where AP values are discrete, 8.7% at 2 replicates and 12 controls; copairs#151 counts ties as at least as extreme, and `run_sim.py` follows it.)
+
+The recall comparison over the full Figure 2 grid is in `fig2_compare.csv` and `fig2_compare.png`; see below.
 
 ## What the paper's pipeline needed to run
 
