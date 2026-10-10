@@ -38,7 +38,15 @@ Cell Painting is saturated either way; the nELISA profiles, where the paper's po
 
 At 3 and 4 replicates the paper's null spends a fifth or less of its 5% budget. (`fig2_null_joint_strict.csv` holds the same run with the paper's strict `>` tie rule applied to the corrected null, which rejects too often where AP values are discrete, 8.7% at 2 replicates and 12 controls; copairs#151 counts ties as at least as extreme, and `run_sim.py` follows it.)
 
-The recall comparison over the full Figure 2 grid is in `fig2_compare.csv` and `fig2_compare.png`; see below.
+Over the full Figure 2 grid (378 cells: 6 feature counts × 3 replicate counts × 3 control counts × 7 effect sizes, 100 simulated perturbations each), the copied-null rerun reproduces the committed `fig2_results.csv` in 89% of cells exactly and within 0.07 everywhere (`fig2_copied.csv`). Swapping in copairs#151's null (`fig2_joint.csv`, compared in `fig2_compare.csv` and `fig2_compare.png`) changes mAP recall as follows, averaged over feature and control counts:
+
+| replicates | 1% | 2% | 4% | 8% | 16% | 32% | 64% of features differ |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 2 | −0.03 | −0.03 | −0.04 | −0.04 | −0.02 | −0.02 | 0.00 |
+| 3 | +0.09 | +0.14 | +0.14 | +0.11 | +0.06 | +0.01 | 0.00 |
+| 4 | +0.16 | +0.19 | +0.15 | +0.12 | +0.04 | 0.00 | 0.00 |
+
+Mean mAP recall over all cells goes from 0.58 to 0.66 at 3 replicates and from 0.64 to 0.73 at 4; the largest single-cell changes are from 0.09 to 0.47 (1,000 features, 4 replicates, 12 controls, 2% of features) and from 0.23 to 0.62 (500 features, 4 replicates, 12 controls, 4%). mAP's recall exceeds mp-value's in 80% of cells under the paper's null and 89% under the corrected one, so the paper's ranking of metrics stands and the gap widens. At 2 replicates the copied null is nearly right (its variance is 1.1 to 1.2 times the correct one), and the small loss there is the tie rule: with one positive among 13 to 37 ranks the AP values are discrete, the paper's strict `>` counts ties as not exceeding, and copairs#151 counts them as at least as extreme, which is the conservative and valid choice.
 
 ## What the paper's pipeline needed to run
 
