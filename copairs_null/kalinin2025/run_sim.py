@@ -51,7 +51,9 @@ if MODE == "joint":
         confs = get_p_value.confs[rev_ix[list(indices)]]  # (num_pos, total) per member
         negatives = tuple(int(t - m) for m, t in confs)
         null = joint_null(negatives, null_size, get_p_value.seed)
-        return (int((null > map_score).sum()) + 1) / (null_size + 1)
+        # copairs#151's tie rule: null values within 1e-9 of the mAP count as at least as extreme
+        # (the paper's get_p_value uses a strict >, which is anticonservative when AP values are discrete)
+        return (int((null >= map_score - 1e-9).sum()) + 1) / (null_size + 1)
 
     # mean_ap() computes null_confs_unique locally; capture it by wrapping get_null_dists
     _orig_get_null_dists = mean_ap_mod.compute.get_null_dists
