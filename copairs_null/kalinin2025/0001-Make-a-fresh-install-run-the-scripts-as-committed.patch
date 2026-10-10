@@ -1,0 +1,85 @@
+From f89ddc288f43406aa79d4dc880f2f0ef2bcbc201 Mon Sep 17 00:00:00 2001
+From: Shantanu Singh <shsingh@broad.mit.edu>
+Date: Sat, 10 Oct 2026 22:22:15 +0000
+Subject: [PATCH] Make a fresh install run the scripts as committed
+
+Pin duckdb==1.2.2: copairs 0.5.1 imports duckdb.duckdb.DuckDBPyRelation,
+which later duckdb releases dropped, so `import copairs` fails in a
+fresh environment built from pyproject.toml.
+
+Import assign_reference_index from copairs.matching in
+0_run_simulations.py, where v0.2.0 removed it from map_utils.map, and
+pass the controls' row Index rather than a boolean Series: the copairs
+function writes its condition back as the index, so the Series would
+give every control index 1 and merge all controls into one positive
+clique. The original map_utils helper assigned df.loc[condition].index.
+
+Call compute.get_similarity_fn in mean_ap.py: get_distance_fn existed
+only in copairs 0.4.2 to 0.4.4; the 0.5.x helper has the same batched
+(feats, pair_ix, batch_size) signature.
+
+With these, the unmodified 0_run_simulations.py reproduces the mAP
+column of results/fig2_results.csv at 100 features within the
+run-to-run jitter of 100 simulated perturbations.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01SdLgTRrN1KcuZ8YhfmVvA3
+---
+ experiments/1_simulations/0_run_simulations.py | 5 +++--
+ map_utils/eval_metrics/mean_ap.py              | 2 +-
+ pyproject.toml                                 | 1 +
+ 3 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/experiments/1_simulations/0_run_simulations.py b/experiments/1_simulations/0_run_simulations.py
+index d7370b8..50dfdc0 100644
+--- a/experiments/1_simulations/0_run_simulations.py
++++ b/experiments/1_simulations/0_run_simulations.py
+@@ -4,7 +4,7 @@ from omegaconf import DictConfig, OmegaConf
+ 
+ from map_utils.eval_metrics.evaluate import calculate_accuracy, evaluate_metrics
+ from map_utils.eval_metrics.generate_data import generate_features
+-from map_utils.map import assign_reference_index
++from copairs.matching import assign_reference_index
+ 
+ 
+ def get_perturb_feature_range(
+@@ -64,9 +64,10 @@ def main(cfg: DictConfig):
+                         features_differ={perturb_distr: n_perturb_features},
+                         differ_params=cfg.perturb_distribs,
+                     )
++                    # each control gets its own index (its row label), perturbations get -1
+                     dframe = assign_reference_index(
+                         dframe,
+-                        dframe["Metadata_Perturbation"] == "negative_control",
++                        dframe.index[dframe["Metadata_Perturbation"] == "negative_control"],
+                         reference_col="Metadata_Control_Index",
+                     )
+ 
+diff --git a/map_utils/eval_metrics/mean_ap.py b/map_utils/eval_metrics/mean_ap.py
+index be9ab76..654a4b8 100644
+--- a/map_utils/eval_metrics/mean_ap.py
++++ b/map_utils/eval_metrics/mean_ap.py
+@@ -21,7 +21,7 @@ def copairs_similarity(
+     distance: str = "cosine",
+ ) -> tuple[npt.ArrayLike, npt.ArrayLike]:
+     """Compute similarity for positive and negative pairs."""
+-    pairwise_distance = compute.get_distance_fn(distance)
++    pairwise_distance = compute.get_similarity_fn(distance)
+     pos_sims = pairwise_distance(feats, pos_pairs, batch_size)
+     neg_sims = pairwise_distance(feats, neg_pairs, batch_size)
+     return pos_sims, neg_sims
+diff --git a/pyproject.toml b/pyproject.toml
+index 574b2e2..4152ee2 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -11,6 +11,7 @@ dependencies = [
+     "scipy==1.15.1",
+     "pandas==2.2.3",
+     "copairs==0.5.1",
++    "duckdb==1.2.2",
+     "notebook==7.5.6",
+     "seaborn==0.13.2",
+     "networkx==3.4.2",
+-- 
+2.43.0
+
