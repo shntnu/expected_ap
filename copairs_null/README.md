@@ -31,5 +31,7 @@ The four-wells check reads `copairs_null_evidence.json`, which is not committed 
 
 - `copairs_joint_null.py`: the joint sampler and every check above.
 - `map_null_effect.py`: what the copied null costs. The p-value copairs reports for a group whose true p-value is 0.05, 0.01 or 0.001, and the share of real hits each null detects, by group size.
+- `figure_data.py`, `figure_data.json`: everything the figures and the explainer page plot, in one file (about ten minutes to regenerate).
+- `figures.py`, `figures/`: the three PNG figures for copairs#151, drawn from `figure_data.json`.
 - `ap_moments.py`, `calibration_check.py`: closed-form moments and null-data simulators, as of commit `a963209`.
 - `copairs_joint_null.patch`: the full diff of copairs#151 (`d5bed2b`) against copairs `main` at `e16a40d`.
