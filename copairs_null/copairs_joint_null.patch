@@ -1,0 +1,478 @@
+diff --git a/src/copairs/compute.py b/src/copairs/compute.py
+index b7dbdc7..10748f5 100644
+--- a/src/copairs/compute.py
++++ b/src/copairs/compute.py
+@@ -1,9 +1,10 @@
+ """Functions to compute distances and ranks using numpy operations."""
+ 
+ import os
++import hashlib
+ import tempfile
+ import itertools
+-from typing import Tuple, Union, Callable, Optional
++from typing import Tuple, Union, Callable, Optional, Sequence
+ from pathlib import Path
+ from multiprocessing.pool import ThreadPool
+ 
+@@ -460,6 +461,90 @@ def random_ap(num_perm: int, num_pos: int, total: int, seed: int):
+     return null_dist
+ 
+ 
++def random_map(
++    members: Sequence[Tuple[int, int]],
++    edges: Sequence[Tuple[int, int]],
++    null_size: int,
++    seed: int,
++    chunk: int = 200_000,
++) -> np.ndarray:
++    """Null distribution of a group's mAP, sampled jointly over its members.
++
++    Under the null every pair's similarity is an independent random number. A
++    positive pair between two members of the group (an edge) is ONE number that
++    sits in both members' rank lists, so their APs move together exactly as much
++    as the retrieval bookkeeping dictates. Everything else a member ranks is
++    private to it. Each member's marginal is the uniform placement of its
++    positives that `random_ap` samples, so per-profile AP p-values are unchanged;
++    only the null of the average changes.
++
++    Per member and sample, its shared values and private positives are drawn
++    explicitly and sorted; its negatives are then dropped into the gaps between
++    them with one multinomial draw, so the cost does not depend on how many
++    negatives it ranks.
++
++    Parameters
++    ----------
++    members : sequence of (num_pos, num_neg)
++        Positive and negative pair counts of each member of the group.
++    edges : sequence of (i, j)
++        Positive pairs between members i and j (local indices into `members`).
++    null_size : int
++        Number of mAP samples.
++    seed : int
++        Master seed; the stream is a pure function of (seed, members, edges).
++
++    Returns
++    -------
++    np.ndarray
++        `null_size` samples of the group's mAP under the null.
++    """
++    n = len(members)
++    members = [(int(num_pos), int(num_neg)) for num_pos, num_neg in members]
++    edges = sorted({(min(int(i), int(j)), max(int(i), int(j))) for i, j in edges})
++    key = repr((int(seed), tuple(sorted(members)), tuple(edges)))
++    digest = hashlib.blake2b(key.encode(), digest_size=8).digest()
++    rng = np.random.default_rng(int.from_bytes(digest, "little"))
++
++    incident = [[] for _ in range(n)]
++    for e, (i, j) in enumerate(edges):
++        if i == j or not (0 <= i < n and 0 <= j < n):
++            raise ValueError(f"edge {(i, j)} does not join two distinct members")
++        incident[i].append(e)
++        incident[j].append(e)
++    plan = []
++    for i, (num_pos, num_neg) in enumerate(members):
++        shared = len(incident[i])
++        if num_pos < 1 or shared > num_pos or num_neg < 0:
++            raise ValueError(
++                f"member {i} has {num_pos} positives, {num_neg} negatives and "
++                f"{shared} positive pairs inside the group"
++            )
++        plan.append(
++            (np.array(incident[i], dtype=np.int64), num_pos - shared, num_pos, num_neg)
++        )
++
++    out = np.empty(null_size, dtype=np.float64)
++    done = 0
++    while done < null_size:
++        b = min(chunk, null_size - done)
++        shared_vals = rng.random((b, len(edges)))
++        total = np.zeros(b)
++        for edge_ix, private_pos, num_pos, num_neg in plan:
++            vals = np.concatenate(
++                [shared_vals[:, edge_ix], rng.random((b, private_pos))], axis=1
++            )
++            vals = -np.sort(-vals, axis=1)  # the member's positives, best first
++            bounds = np.concatenate([np.ones((b, 1)), vals, np.zeros((b, 1))], axis=1)
++            gaps = -np.diff(bounds, axis=1)  # room for negatives around each positive
++            above = np.cumsum(rng.multinomial(num_neg, gaps), axis=1)[:, :-1]
++            t = np.arange(1, num_pos + 1)
++            total += (t / (t + above)).sum(axis=1) / num_pos
++        out[done : done + b] = total / n
++        done += b
++    return out
++
++
+ def _cache_read(path: Path) -> Optional[np.ndarray]:
+     """Read a cached .npy file, returning None on any corruption or absence."""
+     try:
+diff --git a/src/copairs/map/map.py b/src/copairs/map/map.py
+index a5b9cac..e461e8b 100644
+--- a/src/copairs/map/map.py
++++ b/src/copairs/map/map.py
+@@ -1,6 +1,7 @@
+ """Functions to compute mean average precision."""
+ 
+ import logging
++import warnings
+ from os import cpu_count
+ from typing import List, Union, Optional
+ from pathlib import Path
+@@ -26,12 +27,16 @@ def get_map_pvalue(
+     progress_bar: bool = True,
+     max_workers: Optional[int] = None,
+     cache_dir: Optional[Union[str, Path]] = None,
++    pos_pairs: Optional[np.ndarray] = None,
+ ) -> pd.DataFrame:
+     """Compute mAP scores and p-values from AP scores.
+ 
+     This function groups AP scores by the specified columns, computes the mean
+     Average Precision (mAP) for each group, and calculates p-values by comparing
+-    against null distributions.
++    against a null distribution sampled jointly over the group's members
++    (`compute.random_map`): every positive pair inside the group is one random
++    number shared by both members' rank lists, so the null has the right width
++    for the number of replicates.
+ 
+     Parameters
+     ----------
+@@ -49,7 +54,16 @@ def get_map_pvalue(
+     max_workers : int
+         Number of workers used. Default defined by tqdm's `thread_map`.
+     cache_dir : str or Path
+-        Location to save the cache.
++        Location to save the cache (only used by the legacy fallback below).
++    pos_pairs : np.ndarray, optional
++        The `(n_pairs, 2)` positive pairs (row indices of `ap_scores`) used to
++        compute the AP scores, as returned by
++        `find_pairs(meta, sameby=pos_sameby, diffby=pos_diffby)` on the `meta`
++        given to `average_precision`; `ap_scores` must keep the index that
++        `average_precision` returned. When omitted, each group's positives are
++        assumed to be its other members, which is the replicate-retrieval case
++        (`n_pos_pairs == len(group) - 1`). Groups where that does not hold fall
++        back to copairs' previous null with a warning.
+ 
+     Returns
+     -------
+@@ -62,30 +76,12 @@ def get_map_pvalue(
+         - `indices`: List of indices in the original ap_scores for this group.
+ 
+     """
+-    # Filter out invalid or incomplete AP scores
++    # Filter out invalid or incomplete AP scores, remembering the original rows
+     ap_scores = ap_scores.query("~average_precision.isna() and n_pos_pairs > 0")
++    profile = ap_scores.index.to_numpy()
+     ap_scores = ap_scores.reset_index(drop=True).copy()
+-
+-    logger.info("Computing null_dist...")
+-    # Extract configurations for null distribution generation
+-    null_confs = ap_scores[["n_pos_pairs", "n_total_pairs"]].values
+-    null_confs, rev_ix = np.unique(null_confs, axis=0, return_inverse=True)
+-
+-    # Generate null distributions for each unique configuration
+-    null_dists = compute.get_null_dists(
+-        null_confs, null_size, seed=seed, cache_dir=cache_dir, progress_bar=progress_bar
+-    )
+-    ap_scores["null_ix"] = rev_ix
+-
+-    # Function to calculate the p-value for a mAP score based on the null distribution
+-    def get_p_value(params):
+-        map_score, indices = params
+-        null_dist = null_dists[rev_ix[indices]].mean(axis=0)
+-        num = (null_dist > map_score).sum()
+-        p_value = (num + 1) / (null_size + 1)  # Add 1 for stability
+-        return p_value
+-
+-    logger.info("Computing p-values...")
++    num_pos = ap_scores["n_pos_pairs"].to_numpy().astype(np.int64)
++    num_neg = ap_scores["n_total_pairs"].to_numpy().astype(np.int64) - num_pos
+ 
+     # Group by the specified metadata column(s) and calculate mean AP
+     map_scores = ap_scores.groupby(sameby, observed=True, as_index=False).agg(
+@@ -99,19 +95,89 @@ def get_map_pvalue(
+         "indices",
+         "mean_normalized_average_precision",
+     ]
++    groups = map_scores["indices"].tolist()
++
++    # Positive pairs inside each group, as local (i, j) index pairs
++    if pos_pairs is None:
++        edges_of = [
++            [(i, j) for i in range(len(ix)) for j in range(i + 1, len(ix))]
++            if (num_pos[ix] == len(ix) - 1).all()
++            else None
++            for ix in groups
++        ]
++    else:
++        pos_pairs = np.asarray(pos_pairs)
++        group_of = np.full(int(max(pos_pairs.max(), profile.max())) + 1, -1)
++        local = np.empty_like(group_of)
++        for g, ix in enumerate(groups):
++            group_of[profile[ix]] = g
++            local[profile[ix]] = np.arange(len(ix))
++        ga, gb = group_of[pos_pairs[:, 0]], group_of[pos_pairs[:, 1]]
++        inside = (ga >= 0) & (ga == gb)
++        edges_of = [[] for _ in groups]
++        for g, a, b in zip(
++            ga[inside], local[pos_pairs[inside, 0]], local[pos_pairs[inside, 1]]
++        ):
++            edges_of[g].append((int(a), int(b)))
++
++    signatures = [
++        None
++        if edges is None
++        else (tuple(zip(num_pos[ix], num_neg[ix])), tuple(sorted(edges)))
++        for ix, edges in zip(groups, edges_of)
++    ]
++    logger.info("Computing null_dist...")
++    unique = sorted(set(sig for sig in signatures if sig is not None))
++    null_of = {}
++
++    def par_func(k):
++        members, edges = unique[k]
++        null_of[unique[k]] = np.sort(
++            compute.random_map(members, edges, null_size, seed)
++        )
++
++    if unique:
++        compute.parallel_map(par_func, np.arange(len(unique)), progress_bar)
+ 
+-    # Compute p-values for each group using the null distributions
+-    params = map_scores[["mean_average_precision", "indices"]]
++    legacy = [i for i, sig in enumerate(signatures) if sig is None]
++    if legacy:
++        warnings.warn(
++            f"{len(legacy)} group(s) have positives that are not their other members; "
++            "pass pos_pairs to sample their mAP null jointly. Falling back to the "
++            "previous null, which copies one draw across members with equal pair counts.",
++            stacklevel=2,
++        )
++        null_confs = ap_scores[["n_pos_pairs", "n_total_pairs"]].values
++        null_confs, rev_ix = np.unique(null_confs, axis=0, return_inverse=True)
++        null_dists = compute.get_null_dists(
++            null_confs,
++            null_size,
++            seed=seed,
++            cache_dir=cache_dir,
++            progress_bar=progress_bar,
++        )
+ 
++    # Function to calculate the p-value for a mAP score based on the null distribution
++    def get_p_value(k):
++        map_score, indices = map_scores["mean_average_precision"].iat[k], groups[k]
++        if signatures[k] is None:
++            null_dist = null_dists[rev_ix[indices]].mean(axis=0)
++            num = (null_dist > map_score).sum()
++        else:
++            null_dist = null_of[signatures[k]]
++            num = null_size - np.searchsorted(null_dist, map_score - 1e-9, side="left")
++        return (num + 1) / (null_size + 1)  # Add 1 for stability
++
++    logger.info("Computing p-values...")
+     if progress_bar:
+         from tqdm.contrib.concurrent import thread_map
+ 
+         p_values = thread_map(
+-            get_p_value, params.values, leave=False, max_workers=max_workers
++            get_p_value, range(len(groups)), leave=False, max_workers=max_workers
+         )
+     else:
+         p_values = silent_thread_map(
+-            get_p_value, params.values, max_workers=max_workers
++            get_p_value, range(len(groups)), max_workers=max_workers
+         )
+     map_scores["p_value"] = p_values
+ 
+@@ -127,6 +193,7 @@ def mean_average_precision(
+     progress_bar: bool = True,
+     max_workers: Optional[int] = None,
+     cache_dir: Optional[Union[str, Path]] = None,
++    pos_pairs: Optional[np.ndarray] = None,
+ ) -> pd.DataFrame:
+     """Calculate the Mean Average Precision (mAP) score and associated p-values.
+ 
+@@ -154,6 +221,9 @@ def mean_average_precision(
+         Number of workers used. Default defined by tqdm's `thread_map`.
+     cache_dir : str or Path
+         Location to save the cache.
++    pos_pairs : np.ndarray, optional
++        Positive pairs used to compute the AP scores; see `get_map_pvalue`.
++        Needed when a group's positives are not its other members.
+ 
+     Returns
+     -------
+@@ -180,6 +250,7 @@ def mean_average_precision(
+         progress_bar=progress_bar,
+         max_workers=max_workers,
+         cache_dir=cache_dir,
++        pos_pairs=pos_pairs,
+     )
+ 
+     # Step 2: Apply multiple testing correction
+@@ -202,6 +273,7 @@ def mean_average_precision_hierarchical(
+     progress_bar: bool = True,
+     max_workers: Optional[int] = None,
+     cache_dir: Optional[Union[str, Path]] = None,
++    pos_pairs: Optional[np.ndarray] = None,
+ ) -> pd.DataFrame:
+     """Calculate the Mean Average Precision (mAP) score with hierarchical FDR correction.
+ 
+@@ -242,6 +314,9 @@ def mean_average_precision_hierarchical(
+         Number of workers used. Default defined by tqdm's `thread_map`.
+     cache_dir : str or Path
+         Location to save the cache.
++    pos_pairs : np.ndarray, optional
++        Positive pairs used to compute the AP scores; see `get_map_pvalue`.
++        Needed when a group's positives are not its other members.
+ 
+     Returns
+     -------
+@@ -271,6 +346,7 @@ def mean_average_precision_hierarchical(
+         progress_bar=progress_bar,
+         max_workers=max_workers,
+         cache_dir=cache_dir,
++        pos_pairs=pos_pairs,
+     )
+ 
+     # Step 2: Apply hierarchical multiple testing correction
+diff --git a/tests/test_compute.py b/tests/test_compute.py
+index 6624ab8..6107750 100644
+--- a/tests/test_compute.py
++++ b/tests/test_compute.py
+@@ -274,3 +274,73 @@ def test_null_dist_cached_parallel():
+         # All workers should return identical results
+         for r in results:
+             assert np.array_equal(results[0], r)
++
++
++def explicit_map_null(members, edges, null_size, seed):
++    """Draw every similarity explicitly and sort each full list, as a reference for `random_map`."""
++    rng = np.random.default_rng(seed)
++    shared = rng.random((null_size, len(edges)))
++    total = np.zeros(null_size)
++    for i, (num_pos, num_neg) in enumerate(members):
++        mine = [e for e, pair in enumerate(edges) if i in pair]
++        private = rng.random((null_size, num_pos - len(mine) + num_neg))
++        vals = np.concatenate([shared[:, mine], private], axis=1)
++        labels = np.r_[np.ones(num_pos), np.zeros(num_neg)]
++        rel = labels[np.argsort(-vals, axis=1)]
++        precision = np.cumsum(rel, axis=1) / np.arange(1, num_pos + num_neg + 1)
++        total += (precision * rel).sum(axis=1) / num_pos
++    return total / len(members)
++
++
++def test_random_map_singleton_is_the_ap_null():
++    """A group of one member follows the same law as `random_ap`."""
++    from scipy.stats import ks_2samp
++
++    joint = compute.random_map([(3, 100)], [], 50_000, seed=1)
++    single = compute.random_ap(50_000, 3, 103, seed=2).astype(np.float64)
++    assert ks_2samp(joint, single).pvalue > 0.001
++
++
++@pytest.mark.parametrize(
++    "members, edges",
++    [
++        # four replicates: every pair inside the group is a positive
++        ([(3, 100)] * 4, [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]),
++        # a cycle of four, each member with one more positive outside the group
++        ([(3, 50), (3, 60), (3, 50), (3, 60)], [(0, 1), (1, 2), (2, 3), (3, 0)]),
++        # a path of four with no positives outside the group
++        ([(1, 30), (2, 40), (2, 40), (1, 30)], [(0, 1), (1, 2), (2, 3)]),
++    ],
++)
++def test_random_map_matches_explicit_simulation(members, edges):
++    """Placing negatives by gaps reproduces drawing every similarity explicitly."""
++    from scipy.stats import ks_2samp
++
++    fast = compute.random_map(members, edges, 50_000, seed=3)
++    slow = explicit_map_null(members, edges, 50_000, seed=4)
++    assert ks_2samp(fast, slow).pvalue > 0.001
++
++
++def test_random_map_narrows_with_replicates():
++    """The mAP null of four replicates is tighter than one AP, wider than four independent."""
++    members = [(3, 100)] * 4
++    edges = [(i, j) for i in range(4) for j in range(i + 1, 4)]
++    null = compute.random_map(members, edges, 100_000, seed=5)
++    sd_ap = compute.random_ap(100_000, 3, 103, seed=5).std()
++    assert sd_ap / 2 < null.std() < sd_ap
++    # Closed forms for 3 positives among 103 (shntnu/expected_ap, ap_moments.py):
++    # E[AP] = 0.069263 and, with the pair (i, j) shared by both lists, sd(mAP) = 0.049071.
++    assert abs(null.mean() - 0.069263) < 0.0007
++    assert abs(null.std() - 0.049071) < 0.0007
++
++
++def test_random_map_is_reproducible_and_validates():
++    """Same inputs give the same stream; inconsistent inputs are rejected."""
++    members, edges = [(2, 10), (2, 10), (2, 10)], [(0, 1), (1, 2), (0, 2)]
++    a = compute.random_map(members, edges, 1000, seed=7)
++    assert np.array_equal(a, compute.random_map(members, edges, 1000, seed=7))
++    assert not np.array_equal(a, compute.random_map(members, edges, 1000, seed=8))
++    with pytest.raises(ValueError):
++        compute.random_map([(1, 10), (1, 10), (1, 10)], edges, 10, seed=7)
++    with pytest.raises(ValueError):
++        compute.random_map(members, [(0, 0)], 10, seed=7)
+diff --git a/tests/test_map.py b/tests/test_map.py
+index 364395e..486de25 100644
+--- a/tests/test_map.py
++++ b/tests/test_map.py
+@@ -263,3 +263,59 @@ def test_multilabel_has_normalized_ap():
+     )
+ 
+     assert "normalized_average_precision" in result.columns
++
++
++def _ap_frame(rows):
++    """Build an `ap_scores` frame from (group, ap, n_pos_pairs, n_total_pairs) rows."""
++    frame = pd.DataFrame(
++        rows, columns=["g", "average_precision", "n_pos_pairs", "n_total_pairs"]
++    )
++    frame["normalized_average_precision"] = 0.0
++    return frame
++
++
++def test_map_pvalue_replicates_use_the_joint_null():
++    """Replicate groups get the joint null, inferred or from explicit `pos_pairs`."""
++    from copairs.map import get_map_pvalue
++    from copairs.matching import find_pairs
++
++    rng = np.random.default_rng(SEED)
++    meta = pd.DataFrame({"g": ["query"] * 4 + [f"control{i}" for i in range(30)]})
++    feats = rng.standard_normal((len(meta), 10))
++    ap_scores = average_precision(meta, feats, ["g"], [], [], ["g"], progress_bar=False)
++    inferred = get_map_pvalue(ap_scores, ["g"], 20_000, SEED, progress_bar=False)
++    explicit = get_map_pvalue(
++        ap_scores,
++        ["g"],
++        20_000,
++        SEED,
++        progress_bar=False,
++        pos_pairs=find_pairs(meta, sameby=["g"], diffby=[]),
++    )
++    assert inferred["p_value"].tolist() == explicit["p_value"].tolist()
++    assert ((inferred["p_value"] > 0) & (inferred["p_value"] <= 1)).all()
++
++
++def test_map_pvalue_narrows_with_group_size():
++    """The same mAP is more significant with more replicates."""
++    from copairs.map import get_map_pvalue
++
++    rows = []
++    for n in (2, 4, 8):
++        rows += [(f"n{n}", 0.18, n - 1, n - 1 + 100)] * n
++    result = get_map_pvalue(_ap_frame(rows), ["g"], 20_000, SEED, progress_bar=False)
++    p = result.set_index("g")["p_value"]
++    assert p["n2"] > p["n4"] > p["n8"]
++
++
++def test_map_pvalue_falls_back_with_warning(tmp_path):
++    """Groups whose positives are not their other members use the previous null."""
++    from copairs.map import get_map_pvalue
++
++    rows = [("odd", 0.3, 10, 50)] * 3 + [("rep", 0.3, 2, 52)] * 3
++    with pytest.warns(UserWarning, match="pos_pairs"):
++        result = get_map_pvalue(
++            _ap_frame(rows), ["g"], 1000, SEED, progress_bar=False, cache_dir=tmp_path
++        )
++    p = result.set_index("g")["p_value"]
++    assert 0 < p["odd"] <= 1 and 0 < p["rep"] <= 1
