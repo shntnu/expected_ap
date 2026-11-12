@@ -1,6 +1,6 @@
 # Submission review
 
-Prepared for Shantanu Singh and Anne E. Carpenter on September 7, 2026.
+Prepared for Shantanu Singh on November 12, 2026.
 
 The seven-page manuscript includes both mathematical appendices and five references.
 The source archive contains `main.tex`, the vector figure, and the remaining reproducible supplement in `anc/supplement.zip`.
@@ -45,24 +45,24 @@ The asymptotic arguments, Python code, and literature comparison are not certifi
 
 ## Recorded submission choices
 
-- Authors, in order: Shantanu Singh and Anne E. Carpenter.
-- Shared affiliation: Broad Institute of MIT and Harvard.
-- Emails: shantanu@broadinstitute.org and anne@broadinstitute.org.
-  The paper displays the shared-domain shorthand `{shantanu,anne}@broadinstitute.org`, with an individual email link for each author.
+- Author: Shantanu Singh.
+- Affiliation: Broad Institute of MIT and Harvard.
+- Email: shantanu@broadinstitute.org.
 - Primary category: cs.IR (Information Retrieval); requested cross-list: math.PR (Probability).
 - Intended license: CC0 1.0 for the paper and original supplementary material, following the preference for maximum permissiveness.
   CC0 permits reuse without an attribution condition; third-party dependencies retain their own licenses.
-  This is the recorded submission choice, not a claim that either author has already completed final approval or that a public dedication has been submitted.
+  This is the recorded submission choice, not a claim that the author has already completed final approval or that a public dedication has been submitted.
+- The manuscript thanks Anne E. Carpenter.
 - Funding acknowledgment: We appreciate funding from the National Institutes of Health (NIH MIRA R35 GM122547 to AEC).
 - The manuscript acknowledges Claude and Codex assistance in exploration, code, Lean proofs, literature comparison, and writing.
 
 ## Remaining before submission
 
-- Both authors should approve the final manuscript, AI-assistance wording, author details, and CC0 choice.
+- The author should approve the final manuscript, AI-assistance wording, author details, and CC0 choice.
 - Check endorsement requirements in the submitting author's arXiv account.
 - Inspect arXiv's generated PDF and metadata before final submission.
 
-CC BY 4.0 is an alternative if the authors want permissive reuse with legally required attribution.
+CC BY 4.0 is an alternative if the author wants permissive reuse with legally required attribution.
 CC0 is the most permissive available option and does not impose that condition.
 The license selected for a posted version is irrevocable.
 
@@ -75,6 +75,6 @@ Official submission references:
 - [Ancillary files](https://info.arxiv.org/help/ancillary_files.html).
 - [License options](https://info.arxiv.org/help/license/index.html).
 
-The paper and supplement are prepared for the repository's `main` branch and versioned GitHub release `v1.0.1`.
+The paper and supplement are prepared for the repository's `main` branch and versioned GitHub release `v1.0.2`.
 The release includes the manuscript PDF, reproducible supplement, arXiv source package, and citation metadata.
 No arXiv submission has been made.

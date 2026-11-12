@@ -6,22 +6,22 @@
 \usepackage{graphicx}
 \usepackage{microtype}
 \usepackage[hidelinks]{hyperref}
-\hypersetup{pdftitle={Average precision under random ranking: baseline, variability, and formal verification},pdfauthor={Shantanu Singh and Anne E. Carpenter}}
+\hypersetup{pdftitle={Average precision under random ranking: baseline, variability, and formal verification},pdfauthor={Shantanu Singh}}
 \newtheorem{proposition}{Proposition}
 \newtheorem{corollary}{Corollary}
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\Var}{\operatorname{Var}}
 \newcommand{\AP}{\operatorname{AP}}
 \title{Average precision under random ranking:\\baseline, variability, and formal verification}
-\author{Shantanu Singh \and Anne E. Carpenter}
+\author{Shantanu Singh}
 \makeatletter
 \let\originalmaketitle\@maketitle
 \def\@maketitle{\originalmaketitle\vspace{-1.5em}\begin{center}
 Broad Institute of MIT and Harvard\\
-\small\{\href{mailto:shantanu@broadinstitute.org}{shantanu},\href{mailto:anne@broadinstitute.org}{anne}\}@broadinstitute.org
+\small\href{mailto:shantanu@broadinstitute.org}{shantanu@broadinstitute.org}
 \end{center}}
 \makeatother
-\date{September 7, 2026}
+\date{November 12, 2026}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -217,12 +217,13 @@ For the arXiv source download, unpack that supplement alongside \texttt{main.tex
 The Python demonstration also runs separately as \texttt{uv run -{}-locked python demo.py}.
 
 \section*{Acknowledgments}
+The author thanks Anne E. Carpenter.
 We appreciate funding from the National Institutes of Health (NIH MIRA R35 GM122547 to AEC).
 
 \paragraph{AI assistance.}
 Claude (Anthropic) and Codex (OpenAI) assisted with mathematical exploration, code and Lean proof development, literature comparison, and manuscript drafting and revision.
 AI-generated suggestions were evaluated through mathematical review, numerical checks, and Lean verification where applicable.
-The authors are responsible for the final content.
+The author is responsible for the final content.
 
 \clearpage
 \appendix
