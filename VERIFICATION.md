@@ -36,11 +36,11 @@ The exact types are emitted by `lake env lean verify.lean`.
 | `verification_record.py` | `3cdf728ae01dabf2e675ea21d7b38176c8a39551e12b374cad7499902b0cd429` |
 | `verify.py` | `10cf06685afb42f07c54f94638090517a97308f6ddaac685957d7d2da32aed00` |
 | `README.md` | `47cbc10506677ee3f9d7a6e780562844290abc3e196b7cdc873f4b013e3a2f0a` |
-| `SUBMISSION_REVIEW.md` | `d109af09c889fd474a80efa0b1718786566e6a0f0ade78e2fc2014a50ab58e83` |
+| `SUBMISSION_REVIEW.md` | `ed0f3f6638d27fb3bd68844bb0c7a4be130fd25e20af0335fd063fe3c30d90cc` |
 | `.gitignore` | `c9bf0fd7a94f8279d6e46a966ddfb2d7fad58f33e59985967714a4872c11a01d` |
 | `CITATION.cff` | `40678fca4d4130a537869df3c1867104c13c140c6b3d5ee52b5da1e8a340cc7c` |
 | `CITATION.bib` | `d8b61fe74ff380e9514126c0bc444e8eb2622fd881f21aa7327168cc56a46ad9` |
-| `main.tex` | `4834bcb304ab53079968394474ff659d26f77d7f70d9d9a923b3adf8fbbf1caa` |
+| `main.tex` | `168c7a07f8e1dc952a15e6de29ef3b62f254484f68e39a938a0016efd14fa8c9` |
 | `uv.lock` | `86a8ab5888098392c1c858269a3d226181d141a2a3d7c5f433b7a02d0a6caeb8` |
 | `pyproject.toml` | `bb7293cdf28bb0c8cf6f3f13001695c51a194b8b97e789211432d5ad3d7416d9` |
 | `.python-version` | `aa0d6581054e6e4ff3f91839deca7a854ad37221b8784d060b42d0f847ff1a3b` |

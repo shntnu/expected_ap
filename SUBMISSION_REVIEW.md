@@ -53,7 +53,7 @@ The asymptotic arguments, Python code, and literature comparison are not certifi
   CC0 permits reuse without an attribution condition; third-party dependencies retain their own licenses.
   This is the recorded submission choice, not a claim that the author has already completed final approval or that a public dedication has been submitted.
 - The manuscript thanks Anne E. Carpenter, John Arevalo, Alan-Munoz Gonzalez, and Alexandr Kalinin.
-- Funding acknowledgment: We appreciate funding from the National Institutes of Health (NIH MIRA R35 GM122547 to AEC).
+- Funding acknowledgment: We appreciate funding from the National Institutes of Health (NIH MIRA R35 GM122547 to AEC) and the Omics for Assessing Signatures for Integrated Safety (OASIS) Consortium, which is supported by a Massachusetts Life Sciences Center (MLSC) Bits to Bytes Capital Call grant to S.S.
 - The manuscript acknowledges Claude and Codex assistance in exploration, code, Lean proofs, literature comparison, and writing.
 
 ## Remaining before submission
