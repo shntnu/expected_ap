@@ -6,10 +6,10 @@ authors:
     given-names: Shantanu
     affiliation: Broad Institute of MIT and Harvard
     email: shantanu.w.singh@gmail.com
-version: 1.0.3
-date-released: "2026-11-13"
+version: 1.0.2
+date-released: "2026-11-12"
 repository-code: "https://github.com/shntnu/expected_ap"
-url: "https://github.com/shntnu/expected_ap/releases/tag/v1.0.3"
+url: "https://github.com/shntnu/expected_ap/releases/tag/v1.0.2"
 preferred-citation:
   type: report
   title: "Average precision under random ranking: baseline, variability, and formal verification"
@@ -23,6 +23,6 @@ preferred-citation:
   year: 2026
   month: 9
   date-published: "2026-09-07"
-  version: 1.0.3
-  notes: Manuscript and computational supplement, version 1.0.3.
-  url: "https://github.com/shntnu/expected_ap/releases/tag/v1.0.3"
+  version: 1.0.2
+  notes: Manuscript and computational supplement, version 1.0.2.
+  url: "https://github.com/shntnu/expected_ap/releases/tag/v1.0.2"

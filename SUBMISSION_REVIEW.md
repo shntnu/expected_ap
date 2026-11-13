@@ -75,6 +75,6 @@ Official submission references:
 - [Ancillary files](https://info.arxiv.org/help/ancillary_files.html).
 - [License options](https://info.arxiv.org/help/license/index.html).
 
-The paper and supplement are prepared for the repository's `main` branch and versioned GitHub release `v1.0.3`.
+The paper and supplement are prepared for the repository's `main` branch and versioned GitHub release `v1.0.2`.
 The release includes the manuscript PDF, reproducible supplement, arXiv source package, and citation metadata.
 No arXiv submission has been made.
