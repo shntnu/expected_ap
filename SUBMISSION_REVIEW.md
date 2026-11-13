@@ -52,7 +52,7 @@ The asymptotic arguments, Python code, and literature comparison are not certifi
 - Intended license: CC0 1.0 for the paper and original supplementary material, following the preference for maximum permissiveness.
   CC0 permits reuse without an attribution condition; third-party dependencies retain their own licenses.
   This is the recorded submission choice, not a claim that the author has already completed final approval or that a public dedication has been submitted.
-- The manuscript thanks Anne E. Carpenter.
+- The manuscript thanks Anne E. Carpenter, John Arevalo, Alan-Munoz Gonzalez, and Alexandr Kalinin.
 - Funding acknowledgment: We appreciate funding from the National Institutes of Health (NIH MIRA R35 GM122547 to AEC).
 - The manuscript acknowledges Claude and Codex assistance in exploration, code, Lean proofs, literature comparison, and writing.
 
